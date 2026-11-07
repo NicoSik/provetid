@@ -51,3 +51,28 @@ export async function putPlan(plan: TestPlan): Promise<TestPlan> {
   });
   return readJson(response);
 }
+
+/** «Lag regler»: build and save a plan from any job ad. Errors carry the engine's own text. */
+export async function buildPlan(jobAd: string): Promise<TestPlan> {
+  let response: Response;
+  try {
+    response = await fetch("/api/plans", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ job_ad: jobAd }),
+    });
+  } catch {
+    throw new Error("Fikk ikke kontakt med motoren."); // the browser's own text is in English
+  }
+  const body = (await response.json().catch(() => null)) as
+    | (Partial<TestPlan> & { detail?: unknown })
+    | null;
+  if (!response.ok) {
+    const detail = typeof body?.detail === "string" ? body.detail : null;
+    throw new Error(detail ?? `Motoren svarte med feil ${response.status}.`);
+  }
+  if (!body || !Array.isArray(body.rules) || !Array.isArray(body.customers)) {
+    throw new Error("Motoren svarte med noe som ikke er en testplan.");
+  }
+  return body as TestPlan;
+}

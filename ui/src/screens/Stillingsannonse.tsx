@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getPlan, isLock, putPlan, type TestPlan } from "../api/plans";
+import { buildPlan, getPlan, isLock, putPlan, type TestPlan } from "../api/plans";
 import { startRun } from "../api/runs";
 import { replayName } from "../events/replay";
 import { updateSession } from "../state/session";
@@ -21,6 +21,10 @@ function PlanView({ initial }: { initial: TestPlan }) {
   const [unsaved, setUnsaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [ad, setAd] = useState(initial.job_ad);
+  const [building, setBuilding] = useState(false);
+  const [buildError, setBuildError] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState("");
 
   function editRule(id: string, text: string) {
     setApproved(false);
@@ -32,6 +36,9 @@ function PlanView({ initial }: { initial: TestPlan }) {
   }
 
   const emptyRule = plan.rules.some((rule) => rule.text.trim() === "");
+  // An edited ad counts only once its rules are made: the run uses the rules, not the ad text.
+  const adChanged = ad.trim() !== plan.job_ad.trim();
+  const locked = busy || building || adChanged;
 
   async function approve() {
     setBusy(true);
@@ -40,10 +47,29 @@ function PlanView({ initial }: { initial: TestPlan }) {
       setPlan(await putPlan(plan));
       setApproved(true);
       setUnsaved(false);
+      setAnnouncement("");
     } catch {
       setFailed(true);
     }
     setBusy(false);
+  }
+
+  async function makeRules() {
+    setBuilding(true);
+    setBuildError(null);
+    setAnnouncement("");
+    try {
+      const built = await buildPlan(ad);
+      setPlan(built);
+      setAd(built.job_ad);
+      // REQ-1.4: new rules are shown for approval before the interview can start.
+      setApproved(false);
+      setUnsaved(true);
+      setAnnouncement(`${built.rules.length} nye regler. Godkjenn dem før du starter.`);
+    } catch (e) {
+      setBuildError(e instanceof Error ? e.message : "Klarte ikke å lage regler.");
+    }
+    setBuilding(false);
   }
 
   async function start() {
@@ -65,9 +91,46 @@ function PlanView({ initial }: { initial: TestPlan }) {
         <h2 id="annonse" className="text-lg font-semibold text-ink">
           Stillingsannonsen
         </h2>
-        <p className="whitespace-pre-line rounded-md border border-line bg-surface p-4 text-ink">
-          {plan.job_ad}
+        <textarea
+          aria-labelledby="annonse"
+          aria-describedby="annonse-hint"
+          aria-busy={building}
+          readOnly={building}
+          value={ad}
+          onChange={(event) => setAd(event.target.value)}
+          rows={8}
+          maxLength={10000}
+          className="w-full rounded-md border border-line bg-surface p-4 text-ink focus:border-pagar focus:outline-none"
+        />
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => void makeRules()}
+            disabled={building || busy || !ad.trim()}
+            className="rounded-md border border-line px-4 py-2 font-semibold text-ink hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {building ? "Lager regler …" : "Lag regler"}
+          </button>
+          <p id="annonse-hint" className="text-sm text-muted">
+            Lim inn en annen annonse for å lage nye regler fra den.
+          </p>
+        </div>
+        {adChanged && !building && (
+          <p className="text-sm text-stoppet">
+            Annonsen er endret. Lag regler på nytt, eller angre endringen.
+          </p>
+        )}
+        <p aria-live="polite" className="text-sm text-ink">
+          {announcement}
         </p>
+        {buildError && (
+          <p
+            role="alert"
+            className="rounded-md border border-brudd bg-brudd/10 p-3 text-sm text-ink"
+          >
+            {buildError}
+          </p>
+        )}
       </section>
 
       <section aria-labelledby="regler" className="space-y-3">
@@ -88,6 +151,7 @@ function PlanView({ initial }: { initial: TestPlan }) {
                   type="text"
                   value={rule.text}
                   onChange={(event) => editRule(rule.id, event.target.value)}
+                  disabled={building}
                   className="min-w-0 flex-1 rounded-md border border-line bg-surface px-3 py-1.5 text-ink"
                 />
                 <span className="w-16 shrink-0 rounded-md border border-line px-2 py-0.5 text-center text-xs font-semibold text-ink">
@@ -113,7 +177,7 @@ function PlanView({ initial }: { initial: TestPlan }) {
         <button
           type="button"
           onClick={() => void approve()}
-          disabled={busy || emptyRule}
+          disabled={locked || emptyRule}
           className="rounded-md border border-line px-4 py-2 font-semibold text-ink hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Godkjenn planen
@@ -121,7 +185,7 @@ function PlanView({ initial }: { initial: TestPlan }) {
         <button
           type="button"
           onClick={() => void start()}
-          disabled={busy || emptyRule || unsaved}
+          disabled={locked || emptyRule || unsaved}
           className="rounded-md bg-pagar px-4 py-2 font-semibold text-surface hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Start intervju
