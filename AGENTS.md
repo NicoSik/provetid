@@ -76,11 +76,16 @@ Two discovery rules keep parallel work out of shared files:
 - Squash merge only. Update a branch by rebasing onto `main`. Push a rebased branch with
   `--force-with-lease`, never with `--force`.
 - Run `make check` before every push. A broken `main` stops everyone until it is fixed.
-- Get an Opus review before each commit. In Claude Code, run `/model opus`. Stage new files
-  with `git add -N <file>`, so the review sees them. Then run `/code-review` on the uncommitted
-  diff. Fix what it finds, then run `/model` to switch back to your coding model.
-- A coding agent cannot switch its own model. It sends its diff to a reviewer subagent with
-  model `opus` and fixes what that reviewer finds. A second, stronger model catches defects
+- Get an Opus review before each commit. This needs no plugin:
+  1. In Claude Code, run `/model opus`.
+  2. Stage new files with `git add -N <file>`, so `git diff HEAD` shows them.
+  3. Ask: «Review my uncommitted changes (`git diff HEAD`) for bugs, missed requirements of
+     issue #<n>, and breaks of the Rules or Policy sections in `AGENTS.md`. List the findings
+     by severity with file:line. Do not edit files.»
+     With the `code-review` plugin, you can run `/code-review` instead.
+  4. Fix what it finds, then run `/model` to switch back to your coding model.
+- A coding agent cannot switch its own model. It runs `git add -N` on new files, then sends
+  `git diff HEAD` to a reviewer subagent with model `opus`, and fixes what that reviewer finds. A second, stronger model catches defects
   that the coding model misses.
 
 ### The event format is frozen
