@@ -1,13 +1,13 @@
 """Owner limits («Signeringsrett»), derived from the rules."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from provetid.plan.models import Rule
 
 
 class Limits(BaseModel):
-    max_discount_percent: int | None = None
-    max_refund_nok: int | None = None
+    max_discount_percent: int | None = Field(default=None, ge=0, le=100)
+    max_refund_nok: int | None = Field(default=None, ge=0)
     refund_original_only: bool = False
     hide_address_phone: bool = False
     allow_address_change: bool = True

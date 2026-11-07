@@ -16,7 +16,7 @@ export type RunSummary = {
   finished: boolean;
 };
 
-async function readJson<T>(response: Response): Promise<T> {
+export async function readJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
     throw new Error(`Motoren svarte med feil ${response.status}.`);
   }
