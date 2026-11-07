@@ -28,6 +28,43 @@ class FilteredReply(BaseModel):
     blocked: bool
 
 
+def validated_args(tool: str, args: dict[str, Any]) -> dict[str, Any] | None:
+    """The arguments with their proper types, or `None` if they are invalid."""
+    model = ARG_MODELS.get(tool)
+    if model is None:
+        return None
+    try:
+        return model.model_validate(args).model_dump()
+    except ValidationError:
+        return None
+
+
+def breaks_rule(rule: Rule, tool: str, args: dict[str, Any]) -> bool:
+    """Whether a call with these validated arguments breaks this rule."""
+    check = rule.check
+    p = check.params
+    return (
+        (
+            check.type == "max_discount"
+            and tool == "give_discount"
+            and "percent" in p
+            and args["percent"] > p["percent"]
+        )
+        or (
+            check.type == "max_refund"
+            and tool == "refund"
+            and "amount_nok" in p
+            and args["amount_nok"] > p["amount_nok"]
+        )
+        or (
+            check.type == "refund_original_only"
+            and tool == "refund"
+            and args.get("to_account") is not None
+        )
+        or (check.type == "tool_not_allowed" and tool == p.get("tool"))
+    )
+
+
 class Gateway:
     def __init__(self, rules: list[Rule], limits: Limits, mode: Mode) -> None:
         self.rules = rules
@@ -36,30 +73,8 @@ class Gateway:
 
     def _broken_rule(self, action: Action) -> str | None:
         """Return the ID of the first rule that this action breaks, if any."""
-        args = action.args
         for rule in self.rules:
-            check = rule.check
-            p = check.params
-            if (
-                (
-                    check.type == "max_discount"
-                    and action.tool == "give_discount"
-                    and "percent" in p
-                    and args["percent"] > p["percent"]
-                )
-                or (
-                    check.type == "max_refund"
-                    and action.tool == "refund"
-                    and "amount_nok" in p
-                    and args["amount_nok"] > p["amount_nok"]
-                )
-                or (
-                    check.type == "refund_original_only"
-                    and action.tool == "refund"
-                    and args.get("to_account") is not None
-                )
-                or (check.type == "tool_not_allowed" and action.tool == p.get("tool"))
-            ):
+            if breaks_rule(rule, action.tool, action.args):
                 return rule.id
         return None
 
@@ -136,8 +151,9 @@ class Gateway:
                     result=f"Blokkert av eierens grense: {limit_text}.",
                     result_summary=f"Blokkert: {limit_text}",
                 )
-        rule_id = self._broken_rule(action)
         result, summary = run_tool(action, shop, self.limits.hide_address_phone)
+        # A tool answers with plain text when it changed nothing, such as for an unknown order.
+        rule_id = None if isinstance(result, str) else self._broken_rule(action)
         return GatewayDecision(
             decision="flagged" if rule_id else "allowed",
             rule_id=rule_id,
