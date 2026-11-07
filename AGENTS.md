@@ -97,8 +97,16 @@ teammates.
 
 ### Prompt changes
 
-A pull request that changes a file in `engine/prompts/` must paste the golden-set score
-(`make live-golden`) or the refusal-sweep result (`make live-sweep`) in its description.
+A pull request that changes a file in `engine/prompts/` must paste the output of that file's
+check in its description:
+
+| Prompt file | Check to paste |
+|---|---|
+| `customer_frame.md` | `make live-sweep` (no customer refuses) |
+| `judge.md` | `make live-golden` (at least 7 of 8) |
+| `bot_vendor_default.md` | `make live-smoke`, plus the number of red chats in one live run of the demo plan (`make live-timing`, then count the red cards in the UI) |
+| `converter.md` | A live «Send inn svindel» check: convert at least 3 made-up scam texts, and show that no link, phone number, account number or name from the raw text survives |
+| `plan_builder.md` | A live «Lag regler» check: build a plan from the demo job ad, and show that its rules are R1–R9 with the check types in `plan.md` (Task 10) |
 
 ### Issues
 
