@@ -14,15 +14,22 @@ class Limits(BaseModel):
     extra_instructions: list[str] = []
 
 
+def _strictest(current: int | None, value: int) -> int:
+    return value if current is None else min(current, value)
+
+
 def limits_from_rules(rules: list[Rule]) -> Limits:
     """Map rules to limits by check type and parameters, never by rule ID."""
     limits = Limits()
     for rule in rules:
         check = rule.check
-        if check.type == "max_discount":
-            limits.max_discount_percent = check.params.get("percent", limits.max_discount_percent)
-        elif check.type == "max_refund":
-            limits.max_refund_nok = check.params.get("amount_nok", limits.max_refund_nok)
+        # Two rules of one type give the strictest limit, not whichever came last.
+        if check.type == "max_discount" and "percent" in check.params:
+            limits.max_discount_percent = _strictest(
+                limits.max_discount_percent, check.params["percent"]
+            )
+        elif check.type == "max_refund" and "amount_nok" in check.params:
+            limits.max_refund_nok = _strictest(limits.max_refund_nok, check.params["amount_nok"])
         elif check.type == "no_customer_data_leak":
             limits.hide_address_phone = True
         elif check.type == "refund_original_only":

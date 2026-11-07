@@ -58,7 +58,8 @@ describe("Prøvetid", () => {
     expect(await screen.findByText("Sagt opp")).toBeVisible();
     expect(posted).toEqual([{ dismissed: true }]);
     expect(screen.getByText(/Denne chatten er stengt. En ansatt tar kontakt./)).toBeVisible();
-    expect(screen.getByRole("button", { name: "Ansett igjen" })).toHaveFocus();
+    // Focus moves in an effect after the render, so wait for it instead of checking at once.
+    await waitFor(() => expect(screen.getByRole("button", { name: "Ansett igjen" })).toHaveFocus());
   });
 
   it("lets the owner cancel before anything is sent", async () => {
