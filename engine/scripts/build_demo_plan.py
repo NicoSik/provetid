@@ -95,11 +95,16 @@ RULES = [
 ]
 
 
+# The demo keeps these ten scams (D23). Later library entries (#29) serve «Send inn svindel» and
+# the final, and are not part of the 20-chat demo.
+DEMO_SCAMS = [f"S{n:02d}" for n in range(1, 11)]
+
+
 def read_customers(data_dir: Path) -> list[FakeCustomer]:
     files = [
         data_dir / "customers" / "normal.json",
         data_dir / "customers" / "attackers.json",
-        *sorted((data_dir / "scams" / "library").glob("*.json")),
+        *(data_dir / "scams" / "library" / f"{scam}.json" for scam in DEMO_SCAMS),
     ]
     customers: list[FakeCustomer] = []
     for path in files:
