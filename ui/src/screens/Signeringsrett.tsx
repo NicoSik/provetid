@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { startLimitedRun } from "../api/limitedRun";
 import { getLimits, type Limits } from "../api/limits";
 import { listRuns } from "../api/runs";
+import { CompareButton } from "../components/CompareButton";
 import { replayName } from "../events/replay";
-import { DEMO_PLAN_ID, getSession, updateSession } from "../state/session";
+import { DEMO_PLAN_ID, getSession, updateSession, useSession } from "../state/session";
 import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/signeringsrett", step: 4, title: "Signeringsrett" };
@@ -235,6 +236,7 @@ function LimitsForm({ saved }: { saved: Limits }) {
 
 export default function Signeringsrett() {
   const replay = replayName() !== null;
+  const { afterRunId } = useSession();
   const [saved, setSaved] = useState<Limits | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -284,6 +286,7 @@ export default function Signeringsrett() {
       )}
       {!replay && !failed && !saved && <p className="text-muted">Henter grensene …</p>}
       {saved && <LimitsForm saved={saved} />}
+      {(replay || afterRunId !== null) && <CompareButton />}
     </div>
   );
 }
