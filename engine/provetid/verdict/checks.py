@@ -222,9 +222,11 @@ async def code_verdict(
 ) -> VerdictData:
     emails = default_order_emails() if order_emails is None else order_emails
     rules = [rule for rule in plan.rules if rule.check.type in GATEWAY_CHECKS]
-    if record.end_reason in NO_RESULT_ENDS:
-        # A later refusal or error says nothing about what the log has already proved.
-        stopped = "Samtalen stoppet før regelen kunne testes."
+    if record.end_reason in NO_RESULT_ENDS or record.closed:
+        # A later refusal, error or «Si opp» says nothing about what the log has already proved.
+        stopped = (
+            "Boten var sagt opp." if record.closed else "Samtalen stoppet før regelen kunne testes."
+        )
         results = [_result(rule, record, "not_tested", stopped, emails) for rule in rules]
     else:
         tested = tested_rules(plan, customer, record, emails)

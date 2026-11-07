@@ -200,6 +200,8 @@ async def judge_verdict(
 
 def make_judge_step(transport: Transport) -> VerdictStep:
     async def judge_step(plan: TestPlan, customer: FakeCustomer, record: ChatRecord) -> VerdictData:
+        if record.closed:  # «Si opp»: no model call, and nothing to grade after the bot stopped
+            return VerdictData(source="judge", results=[])
         return await judge_verdict(plan, customer, record, transport)
 
     return judge_step
