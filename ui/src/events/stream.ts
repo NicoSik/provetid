@@ -2,9 +2,10 @@
 // `data: <event JSON>`, and resumes after `Last-Event-ID` or `?after=<seq>` (REQ-10.5).
 
 import { getRunStatus } from "../api/runs";
-import { isRunEvent, type RunEvent } from "./types";
+import { joinReplay, parseEvent, replayName } from "./replay";
+import type { RunEvent } from "./types";
 
-export type ConnectionStatus = "connected" | "lost" | "missing" | "abandoned";
+export type ConnectionStatus = "connected" | "lost" | "missing" | "replay_missing" | "abandoned";
 
 const RECONNECT_DELAY_MS = 1000;
 
@@ -13,25 +14,20 @@ function eventsUrl(runId: string, lastSeq: number | null): string {
   return lastSeq === null ? base : `${base}?after=${lastSeq}`;
 }
 
-function parseEvent(raw: string): RunEvent | null {
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    return isRunEvent(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
 /**
  * Streams the events of a run to `onEvent` until `run_finished`. Returns a function that closes
  * the stream. The reducer ignores an event it has seen, so a resend after a reconnect is safe.
  * It keeps trying while the engine is away, and `onStatus` tells the UI how it is going.
+ * With `?replay=<name>` in the URL, it plays that saved run instead and never calls the engine.
  */
 export function openRun(
   runId: string,
   onEvent: (ev: RunEvent) => void,
   onStatus?: (status: ConnectionStatus) => void,
 ): () => void {
+  const replay = replayName();
+  if (replay) return joinReplay(replay, onEvent, (status) => onStatus?.(status));
+
   let source: EventSource | null = null;
   let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
   let lastSeq: number | null = null;
