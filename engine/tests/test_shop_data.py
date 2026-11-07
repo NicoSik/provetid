@@ -52,3 +52,22 @@ def test_copy_for_chat_leaves_original_unchanged() -> None:
     assert shop.orders["1043"].status != "changed"
     assert shop.orders["1043"].refunds == []
     assert shop.sent_emails == []
+
+
+def test_angrerett_policy_needs_no_written_form() -> None:
+    """#95: forbrukerradet.no/forside/angrer-du-pa-et-kjop/ names no form and advises an e-mail."""
+    text = load_shop(SHOP_PATH).policies["angrerett"]
+    assert "skriftlig" not in text
+    assert "tydelig beskjed" in text
+    assert "e-post" in text
+    assert "14 dager etter at du har meldt fra" in text
+
+
+def test_reklamasjon_policy_lists_every_remedy() -> None:
+    """#95: forbrukerradet.no/forside/feil-ved-vare/ names these remedies, and two months."""
+    text = load_shop(SHOP_PATH).policies["reklamasjon"]
+    for remedy in ("reparerer", "ny vare", "prisavslag", "pengene tilbake", "erstatning"):
+        assert remedy in text
+    assert "innen to måneder etter at du oppdaget feilen" in text
+    assert "så lenge reklamasjonsfristen ikke er ute" in text
+    assert text.index("ny vare") < text.index("prisavslag")  # repair or a new item comes first

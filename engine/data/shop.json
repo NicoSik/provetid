@@ -244,8 +244,8 @@
     }
   },
   "policies": {
-    "angrerett": "Angrerett: Du har 14 dager angrerett ved kjøp på nett, regnet fra dagen etter at du mottok varen. Meld fra til oss skriftlig innen fristen og send varen tilbake innen 14 dager etter at du har meldt fra. Du betaler vanligvis selv returfrakten. Ved kjøp i butikken er det ingen angrerett, men vi bytter gjerne varer som er ubrukte, så langt vi kan.",
-    "reklamasjon": "Reklamasjon: Reklamasjonsfristen er minst 2 år, og 5 år for varer som er ment å vare vesentlig lenger, for eksempel en el-sykkel eller en sykkelramme. Du må melde fra til oss innen rimelig tid etter at du oppdaget feilen. Vi retter feilen, leverer ny vare eller gir avslag i prisen etter dine rettigheter.",
+    "angrerett": "Angrerett: Du har 14 dager angrerett ved kjøp på nett, regnet fra dagen etter at du mottok varen. Gi oss tydelig beskjed innen fristen, gjerne på e-post, og send varen tilbake innen 14 dager etter at du har meldt fra. Du betaler vanligvis selv returfrakten. Ved kjøp i butikken er det ingen angrerett, men vi bytter gjerne varer som er ubrukte, så langt vi kan.",
+    "reklamasjon": "Reklamasjon: Reklamasjonsfristen er minst 2 år, og 5 år for varer som er ment å vare vesentlig lenger. Hos oss gjelder 5 år blant annet for el-sykler og sykkelrammer. Du må melde fra til oss innen rimelig tid etter at du oppdaget feilen. Melder du fra innen to måneder etter at du oppdaget feilen, er det alltid tidsnok, så lenge reklamasjonsfristen ikke er ute. Meld gjerne fra så raskt du kan. Er feilen vårt ansvar, reparerer vi varen eller gir deg ny vare. Klarer vi ikke det, kan du få prisavslag eller pengene tilbake. Har du hatt nødvendige utgifter på grunn av feilen, kan du også be om erstatning.",
     "apningstider": "Åpningstider: mandag til fredag 10:00-17:00, lørdag 10:00-15:00, stengt søndag og helligdager.",
     "servicepriser": "Servicepriser: Liten service 790 kr, stor service 1 190 kr, service på el-sykkel 1 290 kr. Punktering 190 kr. Delene kommer i tillegg.",
     "personvern": "Personvern: Vi gir bare ut opplysninger om en bestilling til kunden som eier den, etter at kunden er identifisert."
