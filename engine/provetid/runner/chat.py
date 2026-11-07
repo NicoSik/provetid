@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel
 
+from provetid import dismiss
 from provetid.config import Settings
 from provetid.eventlog import EventLog
 from provetid.events import ChatEndedData, ChatStartedData, LeakData, MessageData, ToolCallData
@@ -29,6 +30,12 @@ class ChatRecord(BaseModel):
     # Whether the bot really handed the chat over. The event format does not carry this.
     handed_over: bool = False
     end_reason: str = ""
+    # «Si opp» closed the chat. The verdict steps must not grade a bot that never answered.
+    closed: bool = False
+
+
+class _Dismissed(Exception):
+    """«Si opp» came while the bot's turn was running."""
 
 
 @dataclass
@@ -51,6 +58,12 @@ async def run_chat(customer: FakeCustomer, chat_id: str, ctx: ChatContext) -> Ch
 def _end(ctx: ChatContext, chat_id: str, record: ChatRecord, reason: str) -> None:
     record.end_reason = reason
     ctx.log.append("chat_ended", ChatEndedData.model_validate({"reason": reason}), chat_id)
+
+
+def _close(ctx: ChatContext, chat_id: str, record: ChatRecord) -> None:
+    _say(ctx, chat_id, record, "bot", dismiss.CLOSED_MESSAGE)
+    record.closed = True
+    _end(ctx, chat_id, record, "done")
 
 
 def _say(ctx: ChatContext, chat_id: str, record: ChatRecord, role: str, text: str) -> None:
@@ -93,6 +106,9 @@ async def run_chat_into(
     customer_count = 1
     try:
         while True:
+            if dismiss.is_dismissed():  # «Si opp»: no bot call after the flag is set
+                _close(ctx, chat_id, record)
+                return
             reply = await _bot_turn(customer, chat_id, ctx, record, bot_system, public, bot_view)
             if reply.handover:
                 record.handed_over = True
@@ -111,6 +127,8 @@ async def run_chat_into(
             if answer.end_chat:
                 _end(ctx, chat_id, record, "done")
                 return
+    except _Dismissed:
+        _close(ctx, chat_id, record)
     except Refused:
         _end(ctx, chat_id, record, "refused")
     except CallFailed:
@@ -130,8 +148,12 @@ async def _bot_turn(
     pending: list[str] = []  # action results of this turn
     reply = BotReply(reply="")
     for _ in range(MAX_BOT_ROUNDS):
+        if dismiss.is_dismissed():
+            raise _Dismissed
         user_input = "\n".join([*bot_view, *pending])
         result = await ctx.transport.call("bot", bot_system, user_input, BotReply)
+        if dismiss.is_dismissed():  # «Si opp» during the call: drop its reply and its actions
+            raise _Dismissed
         reply = result.data
         assert isinstance(reply, BotReply)
         if not reply.actions:
