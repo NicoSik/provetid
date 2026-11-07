@@ -137,7 +137,9 @@ Every reviewer checks a pull request against this section.
   in the repository.
 - **Submitted scams («Send inn svindel»).** The code cleans the text before it stores or sends
   anything. The raw text is never stored, never logged and never sent to a model. Links in a
-  submitted scam are never opened. The sender is never contacted.
+  submitted scam are never opened. The sender is never contacted. The code removes links, phone
+  numbers, email addresses, account numbers and card numbers; names are left for the converter
+  model, which replaces them with placeholders before the text is shown or stored.
 - **Consumer-law text.** Any text that states Norwegian consumer rights (angrerett, reklamasjon,
   refunds) is checked against forbrukerradet.no before it merges. Cite the page in the pull
   request.
