@@ -76,6 +76,12 @@ Two discovery rules keep parallel work out of shared files:
 - Squash merge only. Update a branch by rebasing onto `main`. Push a rebased branch with
   `--force-with-lease`, never with `--force`.
 - Run `make check` before every push. A broken `main` stops everyone until it is fixed.
+- Get an Opus review before each commit. In Claude Code, run `/model opus`. Stage new files
+  with `git add -N <file>`, so the review sees them. Then run `/code-review` on the uncommitted
+  diff. Fix what it finds, then run `/model` to switch back to your coding model.
+- A coding agent cannot switch its own model. It sends its diff to a reviewer subagent with
+  model `opus` and fixes what that reviewer finds. A second, stronger model catches defects
+  that the coding model misses.
 
 ### The event format is frozen
 
@@ -101,8 +107,8 @@ A pull request that changes a file in `engine/prompts/` must paste the golden-se
   bug is triaged at once.
 - Priorities: `P0` the demo cannot happen without it. `P1` the demo is weak or unsafe. `P2` it
   makes the final better. `P3` only if time is left.
-- Done means: the test came first and passes, `make check` is green, the pull request is approved
-  and merged, and the change works on `main`.
+- Done means: the test came first and passes, every commit had an Opus review, `make check` is
+  green, the pull request is approved and merged, and the change works on `main`.
 
 ## Policy
 
