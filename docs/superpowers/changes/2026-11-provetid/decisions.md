@@ -215,6 +215,11 @@ Items marked *pending* or *open* are not settled yet.
   (#87, PR #102)
 - A8 (D26, REQ-2.8): A fake customer now ends its chat after three clear refusals and all its
   tactics, not two (`engine/prompts/customer_frame.md`, from the tuning in #20 and PR #68).
+- A9 (A7, D41, D45), a new decision: A slide deck frames the pitch (#113). The deck shows
+  Stillingsannonse, Signeringsrett and the before-and-after numbers. The app shows only the
+  interview from the pinned `before` replay: Intervju, the Kari card and Karakterkort. A live tab
+  stays open for «Send inn svindel». The brag video is a hidden slide in the deck, for the final
+  only. A9 replaces A7's live Stillingsannonse and Signeringsrett.
 - Pending (D27): The bar for the demo plan is lower than D27's 5 red cards. With the honest bot
   and its policies, a live `observe` run gives 1–2 real breaks. The proposed bar is: the Kari
   confirmation break is red in `observe`, blocked in `enforce`, no grey chats. PR #100 used it and
