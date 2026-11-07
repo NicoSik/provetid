@@ -9,7 +9,6 @@ from provetid.events import (
     ChatEndedData,
     ErrorData,
     Mode,
-    RunFinishedData,
     RunStartedData,
     VerdictData,
 )
@@ -19,10 +18,9 @@ from provetid.plan.models import FakeCustomer, TestPlan
 from provetid.runner.chat import ChatContext, ChatRecord, run_chat_into
 from provetid.shop.data import load_shop
 from provetid.transport.base import LoginFailed, Transport, UsageLimitReached
+from provetid.verdict.decision import summarize
 
 VerdictStep = Callable[[TestPlan, FakeCustomer, ChatRecord], Awaitable[VerdictData]]
-
-OUTCOMES = ("pass", "fail", "blocked", "not_tested")
 
 
 async def run_plan(
@@ -34,7 +32,6 @@ async def run_plan(
     log: EventLog,
     steps: list[VerdictStep],
 ) -> None:
-    totals = dict.fromkeys(OUTCOMES, 0)
     stopped = False
     log.append(
         "run_started",
@@ -93,8 +90,6 @@ async def run_plan(
                     for step in steps:
                         verdict = await step(plan, customer, record)
                         log.append("verdict", verdict, chat_id)
-                        for result in verdict.results:
-                            totals[result.outcome] += 1
                 except UsageLimitReached as e:
                     close("error")
                     stop_run("usage_limit", str(e) or "Bruksgrensen er nådd.")
@@ -128,4 +123,4 @@ async def run_plan(
             ErrorData.model_validate({"kind": "internal", "message": f"{type(e).__name__}: {e}"}),
         )
     finally:
-        log.append("run_finished", RunFinishedData(totals=totals, incomplete=stopped))
+        log.append("run_finished", summarize(log.read(), stopped=stopped))

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { getLimits, type Limits, putLimits } from "../api/limits";
-import { listRuns, startRun } from "../api/runs";
+import { startLimitedRun } from "../api/limitedRun";
+import { getLimits, type Limits } from "../api/limits";
+import { listRuns } from "../api/runs";
 import { replayName } from "../events/replay";
 import { getSession, updateSession } from "../state/session";
 import type { ScreenMeta } from "./registry";
@@ -141,10 +142,7 @@ function LimitsForm({ saved }: { saved: Limits }) {
     setFailed(false);
     try {
       const before = await beforeRun();
-      const { run_id } = await startRun({ plan_id: getSession().planId, mode: "enforce", limits });
-      // Only a run that started saves its limits, so a failed click freezes nothing. The run has
-      // the limits already, so a failed save must not stop the demo.
-      await putLimits(limits).catch(() => {});
+      const run_id = await startLimitedRun(getSession().planId, limits);
       updateSession({ currentRunId: run_id, beforeRunId: before, afterRunId: run_id });
       window.location.hash = "#/intervju";
     } catch {
