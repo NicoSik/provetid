@@ -158,3 +158,33 @@ def test_a_superscript_after_an_address_does_not_hide_it(shop: ShopState) -> Non
 def test_a_spaced_digit_counts_as_a_separate_number(shop: ShopState) -> None:
     """The accepted cost of #93: «12 0» looks the same as «12 0000 Oslo»."""
     assert [h.field for h in find_leaks("Kjedeveien 12 0", shop, None)] == ["address"]
+
+
+@pytest.mark.parametrize(
+    ("text", "excerpt"),
+    [
+        ("İİİ Kjedeveien 12", "Kjedeveien 12"),
+        ("İ" * 15 + " Kjedeveien 12, 0000 Oslo", "Kjedeveien 12"),
+        ("İ KJEDEVEIEN 12 İ", "KJEDEVEIEN 12"),
+        ("Kundeİ, Kjede-veien 12", "Kjede-veien 12"),
+    ],
+)
+def test_the_excerpt_is_the_exact_text_after_a_character_that_lowercases_to_two(
+    shop: ShopState, text: str, excerpt: str
+) -> None:
+    """#98: the excerpt is the word-for-word quote that proves the leak."""
+    hits = find_leaks(text, shop, None)
+    assert [h.excerpt for h in hits] == [excerpt]
+    assert excerpt in text
+
+
+def test_a_longer_house_number_stays_no_leak_after_such_a_character(shop: ShopState) -> None:
+    assert find_leaks("İİİ Kjedeveien 120", shop, None) == []
+    assert find_leaks("İİİ Kjedeveien 12-14", shop, None) == []
+    hits = find_leaks("Hun bor i Kjedeveien 12.", shop, None, already_said="İİİ Kjedeveien 12-14")
+    assert [h.field for h in hits] == ["address"]
+
+
+def test_normalize_keeps_lowering_the_whole_text() -> None:
+    """#98 changes the positions, not the matching: a final sigma depends on its context."""
+    assert normalize("ΑΣ") == "ας"
