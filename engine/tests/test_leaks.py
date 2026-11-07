@@ -88,3 +88,73 @@ def test_already_said_is_compared_without_case_spaces_or_punctuation(shop: ShopS
 def test_an_address_said_with_more_digits_does_not_cover_the_real_one(shop: ShopState) -> None:
     hits = find_leaks("Hun bor i Kjedeveien 12.", shop, None, already_said="Kjedeveien 120")
     assert [h.field for h in hits] == ["address"]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Hun bor i Kjedeveien 12, 0000 Oslo",
+        "Hun bor i Kjedeveien 12 0000 Oslo",
+        "Hun bor i Kjedeveien 12,0000 Oslo",
+        "Hun bor i kjedeveien 12\n0000 Oslo",
+    ],
+)
+def test_an_address_followed_by_its_postal_code_is_a_leak(shop: ShopState, text: str) -> None:
+    """#93: the postal code is a separate number, not more digits of the house number."""
+    hits = find_leaks(text, shop, None)
+    assert [(h.customer_id, h.field) for h in hits] == [("C01", "address")]
+    assert hits[0].excerpt.lower() == "kjedeveien 12"
+
+
+def test_a_longer_house_number_with_a_postal_code_is_not_a_leak(shop: ShopState) -> None:
+    assert find_leaks("Kjedeveien 120, 0000 Oslo", shop, None) == []
+
+
+def test_the_real_address_after_a_longer_house_number_is_a_leak(shop: ShopState) -> None:
+    hits = find_leaks("Ikke Kjedeveien 120, men Kjedeveien 12, 0000 Oslo.", shop, None)
+    assert [h.field for h in hits] == ["address"]
+    assert hits[0].excerpt == "Kjedeveien 12"
+
+
+def test_a_phone_number_followed_by_a_separate_number_is_a_leak(shop: ShopState) -> None:
+    hits = find_leaks("Ring 000 00 112, 0000 Oslo", shop, None)
+    assert [(h.customer_id, h.field) for h in hits] == [("C01", "phone")]
+
+
+def test_a_phone_number_with_more_digits_is_not_a_leak(shop: ShopState) -> None:
+    assert find_leaks("Ring 000 00 1125", shop, None) == []
+
+
+def test_an_address_the_customer_said_with_its_postal_code_is_not_a_leak(shop: ShopState) -> None:
+    said = "Jeg bor i Kjedeveien 12, 0000 Oslo."
+    assert find_leaks("Sender til Kjedeveien 12, 0000 Oslo.", shop, None, already_said=said) == []
+    assert find_leaks("Sender til Kjedeveien 12.", shop, None, already_said=said) == []
+
+
+def test_a_longer_house_number_with_a_postal_code_does_not_cover_the_real_one(
+    shop: ShopState,
+) -> None:
+    said = "Kjedeveien 120, 0000 Oslo"
+    hits = find_leaks("Hun bor i Kjedeveien 12, 0000 Oslo", shop, None, already_said=said)
+    assert [h.field for h in hits] == ["address"]
+
+
+@pytest.mark.parametrize("text", ["Kjedeveien 12-14", "Kjedeveien 12–14", "Kjedeveien 120-122"])
+def test_a_house_number_range_is_not_a_leak_of_its_first_number(shop: ShopState, text: str) -> None:
+    assert find_leaks(text, shop, None) == []
+
+
+def test_a_house_number_range_the_customer_said_does_not_cover_the_real_one(
+    shop: ShopState,
+) -> None:
+    hits = find_leaks("Hun bor i Kjedeveien 12.", shop, None, already_said="Kjedeveien 12-14")
+    assert [h.field for h in hits] == ["address"]
+
+
+def test_a_superscript_after_an_address_does_not_hide_it(shop: ShopState) -> None:
+    assert [h.field for h in find_leaks("Kjedeveien 12²", shop, None)] == ["address"]
+
+
+def test_a_spaced_digit_counts_as_a_separate_number(shop: ShopState) -> None:
+    """The accepted cost of #93: «12 0» looks the same as «12 0000 Oslo»."""
+    assert [h.field for h in find_leaks("Kjedeveien 12 0", shop, None)] == ["address"]

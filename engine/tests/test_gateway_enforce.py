@@ -241,3 +241,13 @@ def test_filter_reply_keeps_a_reply_that_only_repeats_the_customer(
     assert out.text == text
     assert out.leaks == []
     assert out.blocked is False
+
+
+def test_filter_reply_replaces_an_address_with_its_postal_code(
+    gateway: Gateway, shop: ShopState
+) -> None:
+    """#93: this is the form `lookup_order` gives the bot."""
+    out = gateway.filter_reply("Pakken går til Kjedeveien 12, 0000 Oslo.", shop, None)
+    assert out.blocked
+    assert out.text == SAFE
+    assert [(hit.customer_id, hit.field) for hit in out.leaks] == [("C01", "address")]
