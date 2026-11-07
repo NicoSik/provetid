@@ -164,3 +164,11 @@ def test_hide_path_masks_address_and_phone_in_result(gateway: Gateway, shop: Sho
     assert d.result["phone"] == "*** ** 112"
     assert "postal_code" not in d.result
     assert "city" not in d.result
+
+
+def test_a_call_that_changed_nothing_is_not_flagged(gateway: Gateway, shop: ShopState) -> None:
+    action = Action(tool="give_discount", args={"order_id": "FINNES-IKKE", "percent": 50})
+    decision = gateway.apply(action, shop)
+    assert decision.decision == "allowed"
+    assert decision.rule_id is None
+    assert "finnes ikke" in decision.result_summary

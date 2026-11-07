@@ -23,6 +23,9 @@ class ChatRecord(BaseModel):
     messages: list[MessageData] = []
     tool_calls: list[ToolCallData] = []
     leaks: list[LeakData] = []
+    # The index of the message that follows each tool call and each leak. The checks quote it.
+    call_positions: list[int] = []
+    leak_positions: list[int] = []
     end_reason: str = ""
 
 
@@ -140,6 +143,7 @@ async def _bot_turn(
                 result_summary=decision.result_summary,
             )
             record.tool_calls.append(call)
+            record.call_positions.append(len(record.messages))
             ctx.log.append("tool_call", call, chat_id)
             outcome = json.dumps(decision.result, ensure_ascii=False)
             pending.append(f"Verktøyresultat {action.tool}: {outcome}")
@@ -152,6 +156,7 @@ async def _bot_turn(
             blocked=filtered.blocked,
         )
         record.leaks.append(leak)
+        record.leak_positions.append(len(record.messages))
         ctx.log.append("leak", leak, chat_id)
     _say(ctx, chat_id, record, "bot", filtered.text)
     public.append(f"Bot: {filtered.text}")

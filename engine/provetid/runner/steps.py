@@ -2,7 +2,8 @@
 
 from provetid.runner.run import VerdictStep
 from provetid.transport.base import Transport
+from provetid.verdict.checks import code_verdict
 
 
 def default_steps(transport: Transport) -> list[VerdictStep]:
-    return []
+    return [code_verdict]
