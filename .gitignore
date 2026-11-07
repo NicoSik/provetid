@@ -1,0 +1,30 @@
+# Secrets and local config
+.env
+.claude/settings.local.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Node and builds
+node_modules/
+dist/
+
+# Runtime data (never committed)
+engine/data/runs/
+engine/data/scams/submitted/
+engine/data/limits.json
+
+# Personal tool output
+.superpowers/
+graphify-out/
+brag-output/
+.idea/
+.vscode/
+.DS_Store
+
+# Submission package
+provetid-submission.zip
