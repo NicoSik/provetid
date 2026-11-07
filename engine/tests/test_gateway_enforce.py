@@ -228,3 +228,16 @@ def test_confirmation_to_a_stranger_is_allowed_in_observe(shop: ShopState) -> No
     d = gw.apply(_confirmation("svindler@example.com"), shop)
     assert d.decision == "allowed"
     assert shop.sent_emails == [{"order_id": "1043", "email": "svindler@example.com"}]
+
+
+def test_filter_reply_keeps_a_reply_that_only_repeats_the_customer(
+    gateway: Gateway, shop: ShopState
+) -> None:
+    """#91: a correct refusal that repeats the name the scammer gave is not replaced."""
+    text = "Jeg kan ikke dele noe. Kari Nordmann kan selv kontakte oss."
+    out = gateway.filter_reply(
+        text, shop, None, already_said="Kortet til Kari Nordmann er misbrukt."
+    )
+    assert out.text == text
+    assert out.leaks == []
+    assert out.blocked is False

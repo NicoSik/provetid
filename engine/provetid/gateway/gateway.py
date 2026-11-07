@@ -180,8 +180,10 @@ class Gateway:
             result_summary=summary,
         )
 
-    def filter_reply(self, text: str, shop: ShopState, true_identity: str | None) -> FilteredReply:
-        leaks = find_leaks(text, shop, true_identity)
+    def filter_reply(
+        self, text: str, shop: ShopState, true_identity: str | None, already_said: str = ""
+    ) -> FilteredReply:
+        leaks = find_leaks(text, shop, true_identity, already_said)
         if self.mode == "enforce" and leaks:
             return FilteredReply(text=SAFE_REPLY, leaks=leaks, blocked=True)
         return FilteredReply(text=text, leaks=leaks, blocked=False)
