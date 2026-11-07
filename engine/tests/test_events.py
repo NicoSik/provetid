@@ -42,6 +42,11 @@ def test_fixture_has_three_chats():
     assert len({e.chat_id for e in events if e.type == "chat_started"}) == 3
 
 
+def test_seq_starts_at_one_like_live_run_logs():
+    events = [parse_event(line) for line in fixture_lines()]
+    assert events[0].seq == 1
+
+
 def test_seq_rises_by_one_and_t_never_decreases():
     events = [parse_event(line) for line in fixture_lines()]
     assert [e.seq for e in events] == list(range(events[0].seq, events[0].seq + len(events)))
