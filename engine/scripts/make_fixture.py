@@ -65,7 +65,7 @@ def emit(type_: EventType, data: BaseModel, chat_id: str | None = None, dt: floa
     events.append(
         Event(
             run_id=RUN_ID,
-            seq=len(events),
+            seq=len(events) + 1,
             t=_t,
             type=type_,
             chat_id=chat_id,
