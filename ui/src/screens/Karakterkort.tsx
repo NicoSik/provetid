@@ -2,6 +2,7 @@ import { useState } from "react";
 import { startLimitedRun } from "../api/limitedRun";
 import { getLimits } from "../api/limits";
 import { listRuns } from "../api/runs";
+import { CompareButton } from "../components/CompareButton";
 import type { RunState } from "../events/reducer";
 import { replayName } from "../events/replay";
 import { useRun } from "../events/useRun";
@@ -14,7 +15,7 @@ import "../styles/print.css";
 
 export const screen: ScreenMeta = { path: "/karakterkort", step: 3, title: "Karakterkort" };
 
-const DECISION_STYLES: Record<string, string> = {
+export const DECISION_STYLES: Record<string, string> = {
   "Ikke ansett": "border-brudd bg-brudd/10 text-brudd",
   "Ansett med forbehold": "border-stoppet bg-stoppet/10 text-stoppet",
   "Klar for prøvetid": "border-bestatt bg-bestatt/10 text-bestatt",
@@ -87,7 +88,9 @@ function Fixes({ state }: { state: RunState }) {
   if (fixes.length === 0) return null;
 
   const started =
-    session.afterRunId !== null && (startedHere || session.beforeRunId === state.runId);
+    replayName() === null &&
+    session.afterRunId !== null &&
+    (startedHere || session.beforeRunId === state.runId);
   const canRun = state.finished !== null && replayName() === null;
 
   async function applySuggestions() {
@@ -171,6 +174,7 @@ function Fixes({ state }: { state: RunState }) {
 /** The report card for a run state. `Karakterkort` below connects it to the run. */
 export function ReportView({ state }: { state: RunState }) {
   const { untested, blocked } = ruleRows(state);
+  const { afterRunId } = useSession();
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
       <div className="flex items-center justify-between gap-3">
@@ -217,6 +221,7 @@ export function ReportView({ state }: { state: RunState }) {
         </section>
       )}
       <Fixes state={state} />
+      {(replayName() !== null || afterRunId !== null) && <CompareButton />}
     </div>
   );
 }

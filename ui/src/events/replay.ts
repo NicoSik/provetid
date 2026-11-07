@@ -43,6 +43,24 @@ function parseEvents(text: string): RunEvent[] {
     .sort((a, b) => a.seq - b.seq);
 }
 
+/** The events of a file, or `null` if it cannot be read or holds none, such as an HTML page. */
+async function fetchEvents(url: string): Promise<RunEvent[] | null> {
+  try {
+    // A plain file server sends no cache rules. A pinned file must never be replayed stale.
+    const response = await fetch(url, { cache: "no-cache" });
+    if (!response.ok) return null;
+    const events = parseEvents(await response.text());
+    return events.length > 0 ? events : null;
+  } catch {
+    return null;
+  }
+}
+
+/** All events of a pinned file at once, for a screen that needs the result and not the timing. */
+export async function loadReplay(name: string): Promise<RunEvent[] | null> {
+  return SAFE_NAME.test(name) ? fetchEvents(`/replays/${name}.jsonl`) : null;
+}
+
 /**
  * Delivers the events of a saved run with their original timing, divided by the speed.
  * `onFailed` runs when the file cannot be read or holds no events. `onCutOff` runs when the file
@@ -89,17 +107,14 @@ export function playReplay(
   }
 
   async function load() {
-    try {
-      // A plain file server sends no cache rules. A pinned file must never be replayed stale.
-      const response = await fetch(url, { cache: "no-cache" });
-      if (stopped) return;
-      events = response.ok ? parseEvents(await response.text()) : [];
-    } catch {
-      events = [];
-    }
+    const loaded = await fetchEvents(url);
     if (stopped) return;
-    if (events.length === 0) onFailed?.();
-    else if (!paused) deliver();
+    if (loaded === null) {
+      onFailed?.();
+      return;
+    }
+    events = loaded;
+    if (!paused) deliver();
   }
 
   void load();

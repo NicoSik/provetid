@@ -33,6 +33,15 @@ export function decisionFor(state: RunState): string | null {
   return null;
 }
 
+/** The chats with Brudd and with Stoppet: the same count as the cards on Intervju. */
+export function runCounts(state: RunState): { fails: number; blocked: number } {
+  const statuses = state.order.map((id) => state.chats[id].status);
+  return {
+    fails: statuses.filter((status) => status === "Brudd").length,
+    blocked: statuses.filter((status) => status === "Stoppet").length,
+  };
+}
+
 export function ruleRows(state: RunState): {
   tested: RuleRow[];
   untested: Rule[];
