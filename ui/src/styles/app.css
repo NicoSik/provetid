@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+/* The colours are tokens, so Scene-modus (issue #24) can swap them for a light theme. */
+@theme {
+  --color-surface: #0f1220;
+  --color-raised: #1a1e31;
+  --color-raised-hover: #232842;
+  --color-line: #2f3556;
+  --color-ink: #eef0fa;
+  --color-muted: #a4abc8;
+  --color-pagar: #7aa7ff;
+  --color-bestatt: #4fd08a;
+  --color-brudd: #ff6b6b;
+  --color-stoppet: #f5b547;
+  --color-ikke-testet: #a4abc8;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+}
