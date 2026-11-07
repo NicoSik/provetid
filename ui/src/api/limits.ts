@@ -1,5 +1,6 @@
 // The owner's limits («Signeringsrett»).
 
+import { DEMO_PLAN_ID } from "../state/session";
 import { readJson } from "./runs";
 
 export type Limits = {
@@ -12,13 +13,17 @@ export type Limits = {
 };
 
 /** The saved limits, or else the defaults of the plan. The engine's default plan is the demo. */
-export async function getLimits(planId = "demo"): Promise<Limits> {
-  const query = planId === "demo" ? "" : `?plan_id=${encodeURIComponent(planId)}`;
-  return readJson(await fetch(`/api/limits${query}`));
+export async function getLimits(planId = DEMO_PLAN_ID): Promise<Limits> {
+  return readJson(await fetch(`/api/limits${planQuery(planId)}`));
 }
 
-export async function putLimits(limits: Limits): Promise<Limits> {
-  const response = await fetch("/api/limits", {
+function planQuery(planId: string): string {
+  return planId === DEMO_PLAN_ID ? "" : `?plan_id=${encodeURIComponent(planId)}`;
+}
+
+/** Saves the limits of one plan. */
+export async function putLimits(limits: Limits, planId: string): Promise<Limits> {
+  const response = await fetch(`/api/limits${planQuery(planId)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(limits),
