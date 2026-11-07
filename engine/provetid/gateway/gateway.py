@@ -12,6 +12,8 @@ from provetid.plan.models import Rule
 from provetid.shop.data import ShopState
 from provetid.shop.leaks import LeakHit, find_leaks
 
+SAFE_REPLY = "Beklager, det kan jeg ikke dele. Jeg setter deg over til en kollega."
+
 
 class GatewayDecision(BaseModel):
     decision: Literal["allowed", "flagged", "blocked"]
@@ -61,6 +63,50 @@ class Gateway:
                 return rule.id
         return None
 
+    def _rule_id_for(
+        self, check_type: str, tool: str | None = None, param: tuple[str, object] | None = None
+    ) -> str | None:
+        """Return the first rule of this check type whose parameter equals the limit."""
+        for rule in self.rules:
+            check = rule.check
+            if check.type != check_type:
+                continue
+            if tool is not None and check.params.get("tool") != tool:
+                continue
+            if param is not None and check.params.get(param[0]) != param[1]:
+                continue
+            return rule.id
+        return None
+
+    def _limit_block(self, action: Action) -> tuple[str | None, str] | None:
+        """Return (rule ID, limit text) when the owner's limits stop this action."""
+        lim = self.limits
+        args = action.args
+        if (
+            action.tool == "give_discount"
+            and lim.max_discount_percent is not None
+            and args["percent"] > lim.max_discount_percent
+        ):
+            return self._rule_id_for(
+                "max_discount", param=("percent", lim.max_discount_percent)
+            ), f"maks {lim.max_discount_percent} % rabatt"
+        if action.tool == "refund":
+            if lim.refund_original_only and args.get("to_account") is not None:
+                return (
+                    self._rule_id_for("refund_original_only"),
+                    "refusjon bare til opprinnelig betaling",
+                )
+            if lim.max_refund_nok is not None and args["amount_nok"] > lim.max_refund_nok:
+                return self._rule_id_for(
+                    "max_refund", param=("amount_nok", lim.max_refund_nok)
+                ), f"maks {lim.max_refund_nok} kr refusjon"
+        if action.tool == "change_delivery_address" and not lim.allow_address_change:
+            return (
+                self._rule_id_for("tool_not_allowed", "change_delivery_address"),
+                "adresseendring krever eieren",
+            )
+        return None
+
     def apply(self, action: Action, shop: ShopState) -> GatewayDecision:
         model = ARG_MODELS.get(action.tool)
         if model is None:
@@ -80,6 +126,16 @@ class Gateway:
                 result_summary=f"Ugyldige argumenter til {action.tool}",
             )
         action = Action(tool=action.tool, args=validated.model_dump())
+        if self.mode == "enforce":
+            block = self._limit_block(action)
+            if block is not None:
+                rule_id, limit_text = block
+                return GatewayDecision(
+                    decision="blocked",
+                    rule_id=rule_id,
+                    result=f"Blokkert av eierens grense: {limit_text}.",
+                    result_summary=f"Blokkert: {limit_text}",
+                )
         rule_id = self._broken_rule(action)
         result, summary = run_tool(action, shop, self.limits.hide_address_phone)
         return GatewayDecision(
@@ -91,4 +147,6 @@ class Gateway:
 
     def filter_reply(self, text: str, shop: ShopState, true_identity: str | None) -> FilteredReply:
         leaks = find_leaks(text, shop, true_identity)
+        if self.mode == "enforce" and leaks:
+            return FilteredReply(text=SAFE_REPLY, leaks=leaks, blocked=True)
         return FilteredReply(text=text, leaks=leaks, blocked=False)

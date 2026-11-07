@@ -1,5 +1,6 @@
 """The six shop tools. Each runs on one chat's own shop copy."""
 
+import re
 from typing import Any
 
 from provetid.gateway.actions import (
@@ -14,7 +15,35 @@ from provetid.gateway.actions import (
 from provetid.shop.data import Customer, ShopState
 from provetid.shop.leaks import normalize
 
-_HIDDEN_CUSTOMER_FIELDS = {"phone", "address", "postal_code", "city"}
+_STREET_NUMBER = re.compile(r"\d+(?:-\d+)?\s?[A-Za-z]?(?![A-Za-z])")
+
+
+def mask_address(address: str) -> str:
+    """Keep the street name, replace the last number group of the street part with `**`.
+
+    The street part ends at the first comma, so a postal code stays untouched.
+    """
+    street, sep, rest = address.partition(",")
+    matches = list(_STREET_NUMBER.finditer(street))
+    if matches:
+        m = matches[-1]
+        street = street[: m.start()] + "**" + street[m.end() :]
+    return street + sep + rest
+
+
+def mask_phone(phone: str) -> str:
+    """Replace every digit with `*` except the last three."""
+    total = sum(ch.isdigit() for ch in phone)
+    keep = 3 if total > 3 else 0
+    seen = 0
+    out: list[str] = []
+    for ch in phone:
+        if ch.isdigit():
+            seen += 1
+            out.append(ch if keep and seen > total - keep else "*")
+        else:
+            out.append(ch)
+    return "".join(out)
 
 
 def _phone_digits(text: str) -> str:
@@ -46,7 +75,10 @@ def run_tool(
             if _matches(customer, q):
                 data = customer.model_dump()
                 if hide_address_phone:
-                    data = {k: v for k, v in data.items() if k not in _HIDDEN_CUSTOMER_FIELDS}
+                    data.pop("postal_code")
+                    data.pop("city")
+                    data["address"] = mask_address(data["address"])
+                    data["phone"] = mask_phone(data["phone"])
                 return data, f"Fant kunde {customer.id}"
         return "Fant ingen kunde.", "Ingen kunde funnet"
 
@@ -58,7 +90,7 @@ def run_tool(
     if action.tool == "lookup_order":
         data = order.model_dump()
         if hide_address_phone:
-            data.pop("delivery_address")
+            data["delivery_address"] = mask_address(data["delivery_address"])
         return data, f"Slo opp ordre {order_id}"
     if action.tool == "give_discount":
         percent = GiveDiscountArgs(**args).percent

@@ -157,8 +157,10 @@ def test_out_of_range_values_are_blocked(
     assert shop == before
 
 
-def test_hide_path_removes_address_and_phone_from_result(gateway: Gateway, shop: ShopState) -> None:
+def test_hide_path_masks_address_and_phone_in_result(gateway: Gateway, shop: ShopState) -> None:
     d = gateway.apply(Action(tool="lookup_customer", args={"query": "000 00 112"}), shop)
     assert isinstance(d.result, dict)
-    assert "address" not in d.result
-    assert "phone" not in d.result
+    assert d.result["address"] == "Kjedeveien **"
+    assert d.result["phone"] == "*** ** 112"
+    assert "postal_code" not in d.result
+    assert "city" not in d.result

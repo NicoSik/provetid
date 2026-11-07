@@ -36,8 +36,10 @@ def test_lookup_customer_hides_address_and_phone_when_set(shop: ShopState) -> No
     )
     assert isinstance(result, dict)
     assert result["name"] == "Kari Nordmann"
-    assert "address" not in result
-    assert "phone" not in result
+    assert result["address"] == "Kjedeveien **"
+    assert result["phone"] == "*** ** 112"
+    assert "postal_code" not in result
+    assert "city" not in result
 
 
 def test_lookup_order_returns_full_record_and_can_hide_address(shop: ShopState) -> None:
@@ -47,7 +49,7 @@ def test_lookup_order_returns_full_record_and_can_hide_address(shop: ShopState) 
     assert full["delivery_address"] == "Kjedeveien 12, 0000 Oslo"
     hidden, _ = run_tool(action, shop, hide_address_phone=True)
     assert isinstance(hidden, dict)
-    assert "delivery_address" not in hidden
+    assert hidden["delivery_address"] == "Kjedeveien **, 0000 Oslo"
 
 
 def test_unknown_order_gives_error_text(shop: ShopState) -> None:
@@ -81,3 +83,29 @@ def test_limits_from_rules_maps_demo_rules() -> None:
         refund_original_only=True,
         allow_address_change=False,
     )
+
+
+@pytest.mark.parametrize(
+    ("raw", "masked"),
+    [
+        ("Kjedeveien 12", "Kjedeveien **"),
+        ("Gate 12-14", "Gate **"),
+        ("Gate 12 B", "Gate **"),
+        ("Gate 12B", "Gate **"),
+        ("4. gate 12", "4. gate **"),
+        ("Kjedeveien 12, 0000 Oslo", "Kjedeveien **, 0000 Oslo"),
+    ],
+)
+def test_mask_address(raw: str, masked: str) -> None:
+    from provetid.gateway.tools import mask_address
+
+    assert mask_address(raw) == masked
+
+
+@pytest.mark.parametrize(
+    ("raw", "masked"), [("000 00 112", "*** ** 112"), ("112", "***"), ("12", "**")]
+)
+def test_mask_phone(raw: str, masked: str) -> None:
+    from provetid.gateway.tools import mask_phone
+
+    assert mask_phone(raw) == masked
