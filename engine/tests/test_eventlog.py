@@ -122,6 +122,20 @@ def test_a_torn_last_line_is_dropped_when_a_crashed_log_loads(tmp_path: Path) ->
     assert loaded.last_seq == 1
 
 
+def test_a_line_torn_inside_a_norwegian_letter_is_dropped(tmp_path: Path) -> None:
+    path = tmp_path / "r.jsonl"
+    log = EventLog("r", path)
+    log.append("error", ErrorData(kind="internal", message="en"))
+    log.append("error", ErrorData(kind="internal", message="kjøringen stoppet"))
+    raw = path.read_bytes()
+    cut = raw.rindex("ø".encode()) + 1  # between the two bytes of «ø»
+    path.write_bytes(raw[:cut])
+
+    loaded = EventLog("r", path)
+
+    assert [event.seq for event in loaded.read()] == [1]
+
+
 def test_a_broken_line_before_the_last_still_raises(tmp_path: Path) -> None:
     path = tmp_path / "r.jsonl"
     log = EventLog("r", path)
@@ -129,6 +143,31 @@ def test_a_broken_line_before_the_last_still_raises(tmp_path: Path) -> None:
     log.append("error", ErrorData(kind="internal", message="to"))
     lines = path.read_text(encoding="utf-8").splitlines()
     path.write_text("ikke json\n" + lines[1] + "\n", encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        EventLog("r", path)
+
+
+@pytest.mark.parametrize("separator", ["\u2028", "\u2029", "\x85"])
+def test_text_with_a_unicode_line_separator_loads(tmp_path: Path, separator: str) -> None:
+    path = tmp_path / "r.jsonl"
+    log = EventLog("r", path)
+    log.append("error", ErrorData(kind="internal", message=f"a{separator}b"))
+    log.append("error", ErrorData(kind="internal", message="to"))
+
+    loaded = EventLog("r", path)
+
+    assert [event.data["message"] for event in loaded.read()] == [f"a{separator}b", "to"]
+
+
+def test_a_bad_byte_inside_an_earlier_line_still_raises(tmp_path: Path) -> None:
+    path = tmp_path / "r.jsonl"
+    log = EventLog("r", path)
+    log.append("error", ErrorData(kind="internal", message="kjøring"))
+    log.append("error", ErrorData(kind="internal", message="to"))
+    raw = path.read_bytes()
+    cut = raw.index("ø".encode())
+    path.write_bytes(raw[:cut] + b"\xff" + raw[cut + 2 :])  # an invalid byte in the first message
 
     with pytest.raises(ValueError):
         EventLog("r", path)
