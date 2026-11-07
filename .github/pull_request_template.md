@@ -16,6 +16,7 @@ Closes #
 
 - [ ] The test came first for logic, and it passes.
 - [ ] `make check` passes.
+- [ ] Every commit had an Opus review before it was made (the review prompt in `AGENTS.md` on Opus, or an `opus` reviewer subagent).
 - [ ] All data is fictional (000 phone numbers, @example.com, postal code 0000).
 - [ ] No real brand names.
 - [ ] I checked the change against the policy section in `AGENTS.md`.
