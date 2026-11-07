@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ChatCard } from "../components/ChatCard";
 import { ChatPanel } from "../components/ChatPanel";
 import type { RunState } from "../events/reducer";
+import { replayName } from "../events/replay";
 import type { ConnectionStatus } from "../events/stream";
 import { useRun } from "../events/useRun";
 import { updateSession, useSession } from "../state/session";
@@ -12,6 +13,7 @@ export const screen: ScreenMeta = { path: "/intervju", step: 2, title: "Intervju
 const CONNECTION_MESSAGES: Record<Exclude<ConnectionStatus, "connected">, string> = {
   lost: "Mistet kontakten med motoren. Prøver igjen …",
   missing: "Fant ikke denne kjøringen. Den kan være slettet.",
+  replay_missing: "Fant ikke denne avspillingen.",
   abandoned: "Kjøringen ble avbrutt før den var ferdig. Kortene viser det som ble registrert.",
 };
 
@@ -151,8 +153,10 @@ function LiveInterview({ runId }: { runId: string }) {
 
 export default function Intervju() {
   const { currentRunId } = useSession();
+  // A replay needs no run in the session, so it plays with the engine stopped.
+  const runId = replayName() ?? currentRunId;
 
-  if (currentRunId === null) {
+  if (runId === null) {
     return (
       <div className="flex h-full items-center justify-center p-6">
         <p className="text-muted">Ingen intervju er i gang.</p>
@@ -160,5 +164,5 @@ export default function Intervju() {
     );
   }
   // The key starts a new run from a clean slate: no open panel and no old cards.
-  return <LiveInterview key={currentRunId} runId={currentRunId} />;
+  return <LiveInterview key={runId} runId={runId} />;
 }
