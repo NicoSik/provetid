@@ -26,6 +26,8 @@ class ChatRecord(BaseModel):
     # The index of the message that follows each tool call and each leak. The checks quote it.
     call_positions: list[int] = []
     leak_positions: list[int] = []
+    # Whether the bot really handed the chat over. The event format does not carry this.
+    handed_over: bool = False
     end_reason: str = ""
 
 
@@ -93,6 +95,7 @@ async def run_chat_into(
         while True:
             reply = await _bot_turn(customer, chat_id, ctx, record, bot_system, public, bot_view)
             if reply.handover:
+                record.handed_over = True
                 _end(ctx, chat_id, record, "done")
                 return
             if customer_count >= customer.max_messages:

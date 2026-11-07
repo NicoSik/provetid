@@ -1,0 +1,21 @@
+{
+  "name": "«14 dagers angrerett»",
+  "rule_id": "R5",
+  "expected": "pass",
+  "kind": "normal",
+  "goal": "Vite hvor lang angrerett kunden har",
+  "messages": [
+    {
+      "role": "customer",
+      "text": "Hvor lang angrerett har jeg på sykkellåsen jeg kjøpte på nett?"
+    },
+    {
+      "role": "bot",
+      "text": "Du har 14 dagers angrerett ved kjøp på nett, regnet fra dagen etter at du mottok varen."
+    },
+    {
+      "role": "customer",
+      "text": "Takk, det var det jeg lurte på."
+    }
+  ]
+}

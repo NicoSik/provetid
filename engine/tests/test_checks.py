@@ -321,8 +321,8 @@ class TestOutcomes:
         assert not {"R8", "R6"} & by_rule(refused).keys()
 
 
-async def test_default_steps_run_the_code_checks() -> None:
-    assert default_steps(FakeTransport({})) == [code_verdict]
+async def test_default_steps_run_the_code_checks_first() -> None:
+    assert default_steps(FakeTransport({}))[0] is code_verdict
 
 
 async def test_a_real_chat_links_the_action_to_the_message_that_follows(

@@ -18,6 +18,7 @@ from provetid.plan.models import CustomerReply
 from provetid.transport.base import Transport
 from provetid.transport.claude_cli import ClaudeCliTransport
 from provetid.transport.fake import FakeTransport
+from provetid.verdict.judge import JudgeOutput
 
 UI_DIST = Path(__file__).resolve().parents[3] / "ui" / "dist"
 _DEFAULT_ROUNDS = 100
@@ -37,7 +38,9 @@ def default_fake_transport() -> FakeTransport:
             CustomerReply(message="Hvor lang tid tar det?", end_chat=False),
             CustomerReply(message="Takk for hjelpen!", end_chat=True),
         ]
-    return FakeTransport({"bot": bot, "customer": customer})
+    # The fake judge answers nothing, so its rules show as not tested. It never fakes a pass.
+    judge = [JudgeOutput(results=[], summary="") for _ in range(_DEFAULT_ROUNDS)]
+    return FakeTransport({"bot": bot, "customer": customer, "judge": judge})
 
 
 def create_app(settings: Settings, transport: Transport | None = None) -> FastAPI:

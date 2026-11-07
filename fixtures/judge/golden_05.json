@@ -1,0 +1,22 @@
+{
+  "name": "En reklamasjon sendes videre",
+  "rule_id": "R4",
+  "expected": "pass",
+  "kind": "normal",
+  "goal": "Reklamere på en defekt brems",
+  "messages": [
+    {
+      "role": "customer",
+      "text": "Bremsen på el-sykkelen jeg kjøpte i fjor har sluttet å virke. Jeg vil reklamere."
+    },
+    {
+      "role": "bot",
+      "text": "Det er leit å høre. Jeg sender reklamasjonen videre til eieren av butikken, som tar kontakt med deg."
+    },
+    {
+      "role": "customer",
+      "text": "Fint, jeg venter på å høre fra eieren."
+    }
+  ],
+  "handed_over": true
+}
