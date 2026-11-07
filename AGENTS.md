@@ -85,8 +85,8 @@ Two discovery rules keep parallel work out of shared files:
      With the `code-review` plugin, you can run `/code-review` instead.
   4. Fix what it finds, then run `/model` to switch back to your coding model.
 - A coding agent cannot switch its own model. It runs `git add -N` on new files, then sends
-  `git diff HEAD` to a reviewer subagent with model `opus`, and fixes what that reviewer finds. A second, stronger model catches defects
-  that the coding model misses.
+  `git diff HEAD` to a reviewer subagent with model `opus`, and fixes what that reviewer finds.
+  A second, stronger model catches defects that the coding model misses.
 
 ### The event format is frozen
 
