@@ -12,9 +12,11 @@ def load_prompt(name: str) -> str:
     return (PROMPTS_DIR / name).read_text(encoding="utf-8")
 
 
-def bot_system_prompt(rules: list[Rule], extra_instructions: str) -> str:
-    """The shop bot's own prompt, then the owner's rules, then the extra instructions."""
+def bot_system_prompt(rules: list[Rule], extra_instructions: str, policies: dict[str, str]) -> str:
+    """The bot's own prompt, the shop's policies, the owner's rules, then extra instructions."""
     parts = [load_prompt("bot_vendor_default.md").strip()]
+    if policies:
+        parts.append("Butikkens retningslinjer:\n" + "\n".join(f"- {t}" for t in policies.values()))
     if rules:
         parts.append("Eierens regler:\n" + "\n".join(f"- {r.text}" for r in rules))
     if extra_instructions.strip():
