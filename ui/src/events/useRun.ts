@@ -1,22 +1,28 @@
 import { useEffect, useState } from "react";
-import { initialState, type RunState, reduce } from "./reducer";
-import { openRun } from "./stream";
+import { abandonRun, initialState, type RunState, reduce } from "./reducer";
+import { type ConnectionStatus, openRun } from "./stream";
 
 /** The live state of a run. It starts over when `runId` changes. */
-export function useRun(runId: string | null): { state: RunState; connectionLost: boolean } {
+export function useRun(runId: string | null): { state: RunState; connection: ConnectionStatus } {
   const [state, setState] = useState(initialState);
-  const [connectionLost, setConnectionLost] = useState(false);
+  const [connection, setConnection] = useState<ConnectionStatus>("connected");
 
   useEffect(() => {
     setState(initialState());
-    setConnectionLost(false);
+    setConnection("connected");
     if (runId === null) return;
     return openRun(
       runId,
       (ev) => setState((current) => reduce(current, ev)),
-      (connected) => setConnectionLost(!connected),
+      (status) => {
+        setConnection(status);
+        if (status === "abandoned") setState((current) => abandonRun(current, runId));
+        if (status === "missing") {
+          setState((current) => (current.runId === null ? current : abandonRun(current, runId)));
+        }
+      },
     );
   }, [runId]);
 
-  return { state, connectionLost };
+  return { state, connection };
 }

@@ -2,11 +2,18 @@ import { useEffect, useState } from "react";
 import { ChatCard } from "../components/ChatCard";
 import { ChatPanel } from "../components/ChatPanel";
 import type { RunState } from "../events/reducer";
+import type { ConnectionStatus } from "../events/stream";
 import { useRun } from "../events/useRun";
-import { useSession } from "../state/session";
+import { updateSession, useSession } from "../state/session";
 import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/intervju", step: 2, title: "Intervju" };
+
+const CONNECTION_MESSAGES: Record<Exclude<ConnectionStatus, "connected">, string> = {
+  lost: "Mistet kontakten med motoren. Prøver igjen …",
+  missing: "Fant ikke denne kjøringen. Den kan være slettet.",
+  abandoned: "Kjøringen ble avbrutt før den var ferdig. Kortene viser det som ble registrert.",
+};
 
 /** The next chat with Brudd after `currentId`, wrapping round to the first. */
 function nextBreach(state: RunState, currentId: string | null): string | null {
@@ -55,10 +62,12 @@ function RunSummaryBar({ state }: { state: RunState }) {
 /** The grid and the panel for a run state. `Intervju` below connects it to the live stream. */
 export function InterviewView({
   state,
-  connectionLost = false,
+  connection = "connected",
+  onForgetRun,
 }: {
   state: RunState;
-  connectionLost?: boolean;
+  connection?: ConnectionStatus;
+  onForgetRun?: () => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const openChat = openId === null ? undefined : state.chats[openId];
@@ -83,13 +92,22 @@ export function InterviewView({
     <div className="flex h-full min-h-0">
       <div className="min-w-0 flex-1 space-y-4 overflow-y-auto p-6">
         <RunSummaryBar state={state} />
-        {connectionLost && (
-          <p
+        {connection !== "connected" && (
+          <div
             role="alert"
-            className="rounded-md border border-stoppet bg-stoppet/10 p-3 text-sm text-ink"
+            className="flex flex-wrap items-center gap-3 rounded-md border border-stoppet bg-stoppet/10 p-3 text-sm text-ink"
           >
-            Mistet kontakten med motoren. Prøver igjen …
-          </p>
+            <p>{CONNECTION_MESSAGES[connection]}</p>
+            {connection === "missing" && onForgetRun && (
+              <button
+                type="button"
+                onClick={onForgetRun}
+                className="rounded-md border border-line bg-raised px-2.5 py-1 hover:bg-raised-hover"
+              >
+                Fjern kjøringen
+              </button>
+            )}
+          </div>
         )}
         {state.error && (
           <p
@@ -121,8 +139,14 @@ export function InterviewView({
 }
 
 function LiveInterview({ runId }: { runId: string }) {
-  const { state, connectionLost } = useRun(runId);
-  return <InterviewView state={state} connectionLost={connectionLost} />;
+  const { state, connection } = useRun(runId);
+  return (
+    <InterviewView
+      state={state}
+      connection={connection}
+      onForgetRun={() => updateSession({ currentRunId: null })}
+    />
+  );
 }
 
 export default function Intervju() {

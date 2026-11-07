@@ -1,8 +1,10 @@
 import asyncio
 from pathlib import Path
 
+import pytest
+
 from provetid.eventlog import EventLog
-from provetid.events import ChatEndedData, MessageData, RunFinishedData, parse_event
+from provetid.events import ChatEndedData, ErrorData, MessageData, RunFinishedData, parse_event
 
 
 def _msg(i: int) -> MessageData:
@@ -104,3 +106,29 @@ async def test_cancelled_subscriber_leaves_no_waiter(tmp_path: Path) -> None:
     task.cancel()
     await asyncio.gather(task, return_exceptions=True)
     assert log.waiter_count == 0
+
+
+def test_a_torn_last_line_is_dropped_when_a_crashed_log_loads(tmp_path: Path) -> None:
+    path = tmp_path / "r.jsonl"
+    log = EventLog("r", path)
+    log.append("error", ErrorData(kind="internal", message="en"))
+    log.append("error", ErrorData(kind="internal", message="to"))
+    text = path.read_text(encoding="utf-8")
+    path.write_text(text[: len(text) - 10], encoding="utf-8")
+
+    loaded = EventLog("r", path)
+
+    assert [event.seq for event in loaded.read()] == [1]
+    assert loaded.last_seq == 1
+
+
+def test_a_broken_line_before_the_last_still_raises(tmp_path: Path) -> None:
+    path = tmp_path / "r.jsonl"
+    log = EventLog("r", path)
+    log.append("error", ErrorData(kind="internal", message="en"))
+    log.append("error", ErrorData(kind="internal", message="to"))
+    lines = path.read_text(encoding="utf-8").splitlines()
+    path.write_text("ikke json\n" + lines[1] + "\n", encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        EventLog("r", path)

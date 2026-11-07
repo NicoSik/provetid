@@ -150,8 +150,13 @@ describe("the summary bar", () => {
   });
 
   it("warns when the connection to the engine is lost", () => {
-    render(<InterviewView state={fixture.reduce(reduce, initialState())} connectionLost />);
+    render(<InterviewView state={fixture.reduce(reduce, initialState())} connection="lost" />);
     expect(screen.getByRole("alert")).toHaveTextContent("Mistet kontakten med motoren");
+  });
+
+  it("says that a run was cut off", () => {
+    render(<InterviewView state={fixture.reduce(reduce, initialState())} connection="abandoned" />);
+    expect(screen.getByRole("alert")).toHaveTextContent("Kjøringen ble avbrutt");
   });
 });
 
