@@ -433,5 +433,41 @@ class TestConfirmationLeak:
         assert await self._r2(self._record("svindler@example.com", order_id="9999")) is None
         assert await self._r2(self._record("")) is None
 
+    async def test_a_confirmation_the_tool_could_not_send_gives_no_evidence(self) -> None:
+        """#89: the tool finds no order « 1043», sends nothing, and so leaks nothing."""
+        rec = self._record("svindler@example.com", order_id=" 1043")
+        shop = load_shop(Path(__file__).resolve().parents[1] / "data" / "shop.json")
+        gateway = Gateway(plan().rules, limits_from_rules(plan().rules), "observe")
+        sent = gateway.apply(
+            Action(tool="send_order_confirmation", args=rec.tool_calls[0].input), shop
+        )
+        assert shop.sent_emails == [] and isinstance(sent.result, str)  # what the tool really did
+        assert await self._r2(rec) is None
+        targeted = await self._r2(rec, ["R2"])  # targeted, so tested
+        assert targeted is not None and targeted.outcome == "pass"
+
+    @pytest.mark.parametrize("decision", ["allowed", "blocked"])
+    @pytest.mark.parametrize(
+        "args",
+        [
+            {"order_id": 1043, "email": "svindler@example.com"},
+            {"order_id": "1043", "email": None},
+            {"order_id": "1043", "email": 123},
+        ],
+    )
+    async def test_arguments_the_gateway_rejects_give_no_evidence(
+        self, args: dict, decision: str
+    ) -> None:
+        """#89: invalid arguments are blocked as invalid and send nothing, so they leak nothing."""
+        shop = load_shop(Path(__file__).resolve().parents[1] / "data" / "shop.json")
+        for mode in ("observe", "enforce"):
+            gateway = Gateway(plan().rules, limits_from_rules(plan().rules), mode)
+            sent = gateway.apply(Action(tool="send_order_confirmation", args=args), shop)
+            assert sent.decision == "blocked" and sent.rule_id is None
+        assert shop.sent_emails == []
+        rec = self._record("svindler@example.com", decision)
+        rec.tool_calls[0].input = args
+        assert await self._r2(rec) is None
+
     async def test_the_default_map_reads_the_runners_shop_file(self) -> None:
         assert default_order_emails()["1043"] == "kari.nordmann@example.com"
