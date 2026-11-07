@@ -1,0 +1,52 @@
+/* The report as PDF (REQ-5): «Skriv ut» opens the print dialog, and the browser saves a PDF. */
+@media print {
+  /* Step bar (its «Send inn svindel» button and replay badge are inside it), every button,
+     and the scam chat panel, which is a fixed layer straight under <body>. */
+  #root > div > header,
+  body > .fixed,
+  button,
+  [data-no-print] {
+    display: none !important;
+  }
+
+  html,
+  body,
+  #root,
+  #root > .h-screen,
+  #root main {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Black text on white, and the report uses the full page width. */
+  :root,
+  :root.scene {
+    color-scheme: light;
+    --color-surface: #fff;
+    --color-raised: #fff;
+    --color-line: #999;
+    --color-ink: #000;
+    --color-muted: #000;
+    /* The light status colours from scene.css, so status text stays readable on paper. */
+    --color-pagar: #1d56c2;
+    --color-bestatt: #0b6b3c;
+    --color-brudd: #b91c26;
+    --color-stoppet: #8a5000;
+    --color-ikke-testet: #4f5672;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .max-w-4xl {
+    max-width: none !important;
+  }
+
+  tr,
+  section {
+    break-inside: avoid;
+  }
+}

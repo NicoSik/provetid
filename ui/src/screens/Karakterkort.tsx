@@ -10,6 +10,7 @@ import { decisionFor, ruleRows } from "../report/rows";
 import { getSession, updateSession, useSession } from "../state/session";
 import { CONNECTION_MESSAGES, RUN_ERROR_TEXT } from "./Intervju";
 import type { ScreenMeta } from "./registry";
+import "../styles/print.css";
 
 export const screen: ScreenMeta = { path: "/karakterkort", step: 3, title: "Karakterkort" };
 
@@ -172,7 +173,17 @@ export function ReportView({ state }: { state: RunState }) {
   const { untested, blocked } = ruleRows(state);
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
-      <h1 className="text-xl font-bold text-ink">Karakterkort</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-bold text-ink">Karakterkort</h1>
+        <button
+          type="button"
+          data-no-print
+          onClick={() => window.print()}
+          className="rounded-md border border-line bg-raised px-3 py-1.5 text-sm text-ink hover:bg-raised-hover"
+        >
+          Skriv ut
+        </button>
+      </div>
       <DecisionBanner state={state} />
       {state.finished?.incomplete && (
         <p
