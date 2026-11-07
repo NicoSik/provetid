@@ -4,6 +4,7 @@ import { ChatPanel } from "../components/ChatPanel";
 import type { RunState } from "../events/reducer";
 import { replayName } from "../events/replay";
 import type { ConnectionStatus } from "../events/stream";
+import type { ErrorData } from "../events/types";
 import { useRun } from "../events/useRun";
 import { updateSession, useSession } from "../state/session";
 import type { ScreenMeta } from "./registry";
@@ -15,6 +16,14 @@ const CONNECTION_MESSAGES: Record<Exclude<ConnectionStatus, "connected">, string
   missing: "Fant ikke denne kjøringen. Den kan være slettet.",
   replay_missing: "Fant ikke denne avspillingen.",
   abandoned: "Kjøringen ble avbrutt før den var ferdig. Kortene viser det som ble registrert.",
+};
+
+// The engine's text can be raw tool output, so the audience gets a fixed line for each kind.
+const RUN_ERROR_TEXT: Record<ErrorData["kind"], string> = {
+  usage_limit: "Bruksgrensen er nådd. Kjøringen ble stoppet.",
+  login: "Claude Code er ikke logget inn. Kjøringen ble stoppet.",
+  call_failed: "Noe gikk galt under kjøringen.",
+  internal: "Noe gikk galt under kjøringen.",
 };
 
 /** The next chat with Brudd after `currentId`, wrapping round to the first. */
@@ -56,7 +65,9 @@ function RunSummaryBar({ state }: { state: RunState }) {
         ) : (
           <span className="font-semibold text-ink">Intervjuet er ferdig</span>
         ))}
-      <span className="ml-auto text-xs">→ neste brudd · Esc lukker</span>
+      <span data-dev className="ml-auto text-xs">
+        → neste brudd · Esc lukker
+      </span>
     </div>
   );
 }
@@ -72,6 +83,7 @@ export function InterviewView({
   onForgetRun?: () => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const [jumps, setJumps] = useState(0);
   const openChat = openId === null ? undefined : state.chats[openId];
   const waiting = state.finished ? 0 : Math.max((state.chatCount ?? 0) - state.order.length, 0);
 
@@ -82,6 +94,7 @@ export function InterviewView({
       if (event.key === "ArrowRight") {
         event.preventDefault();
         setOpenId((current) => nextBreach(state, current));
+        setJumps((count) => count + 1);
       } else if (event.key === "Escape") {
         setOpenId(null);
       }
@@ -116,12 +129,19 @@ export function InterviewView({
             role="alert"
             className="rounded-md border border-brudd bg-brudd/10 p-3 text-sm text-ink"
           >
-            {state.error.message}
+            <span data-dev>{state.error.message}</span>
+            <span data-scene>{RUN_ERROR_TEXT[state.error.kind]}</span>
           </p>
         )}
         <div className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-3">
           {state.order.map((id) => (
-            <ChatCard key={id} chat={state.chats[id]} selected={id === openId} onOpen={setOpenId} />
+            <ChatCard
+              key={id}
+              chat={state.chats[id]}
+              selected={id === openId}
+              scrollSignal={id === openId ? jumps : 0}
+              onOpen={setOpenId}
+            />
           ))}
           {Array.from({ length: waiting }, (_, slot) => `venter-${slot}`).map((key) => (
             <div

@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect, useRef } from "react";
 import type { ChatStatus, ChatView } from "../events/reducer";
 import type { CustomerKind } from "../events/types";
 import { StatusChip } from "./StatusChip";
@@ -20,14 +20,30 @@ const CARD_BORDERS: Record<ChatStatus, string> = {
 type Props = {
   chat: ChatView;
   selected: boolean;
+  /** Changes each time the driver presses →, also if the selection stays on this card. */
+  scrollSignal?: number;
   onOpen: (id: string) => void;
 };
 
 // The reducer keeps an unchanged chat as the same object, so one event redraws one card.
-export const ChatCard = memo(function ChatCard({ chat, selected, onOpen }: Props) {
+export const ChatCard = memo(function ChatCard({
+  chat,
+  selected,
+  scrollSignal = 0,
+  onOpen,
+}: Props) {
   const last = chat.messages[chat.messages.length - 1];
+  const card = useRef<HTMLButtonElement>(null);
+
+  // → can select a card below the fold, and a keyboard-only driver must see where it went.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `scrollSignal` is the trigger.
+  useEffect(() => {
+    if (selected) card.current?.scrollIntoView?.({ block: "nearest" });
+  }, [selected, scrollSignal]);
+
   return (
     <button
+      ref={card}
       type="button"
       aria-pressed={selected}
       onClick={() => onOpen(chat.id)}

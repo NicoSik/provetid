@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prøvetid</title>
+    <script>
+      // Set before first paint, so a reload on stage never flashes the dark theme.
+      try {
+        if (localStorage.getItem("provetid.scene") === "1") {
+          document.documentElement.classList.add("scene");
+        }
+      } catch {
+        // The browser blocks storage. SceneToggle handles the rest.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

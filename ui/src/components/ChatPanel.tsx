@@ -45,7 +45,16 @@ function ResultLine({ result, rule }: { result: RuleResult; rule: Rule | undefin
   return (
     <li className="rounded-md border border-line bg-surface p-3">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-medium text-ink">{rule?.text ?? result.rule_id}</p>
+        <p className="text-sm font-medium text-ink">
+          {rule ? (
+            rule.text
+          ) : (
+            <>
+              <span data-dev>{result.rule_id}</span>
+              <span data-scene>En regel</span>
+            </>
+          )}
+        </p>
         <StatusChip status={OUTCOME_STATUS[result.outcome]} />
       </div>
       {result.quote && (
@@ -63,12 +72,12 @@ function ToolCallLine({ call }: { call: ToolCallData }) {
   return (
     <li className="rounded-md border border-line px-3 py-2 text-sm">
       <div className="flex items-baseline justify-between gap-3">
-        <code className="min-w-0 break-words text-xs text-muted">
-          {call.tool}({JSON.stringify(call.input)})
-        </code>
+        <p className="min-w-0 text-ink/85">{call.result_summary}</p>
         <span className={`shrink-0 text-xs font-semibold ${decision.style}`}>{decision.label}</span>
       </div>
-      <p className="mt-1 text-ink/85">{call.result_summary}</p>
+      <code data-dev className="mt-1 block break-words text-xs text-muted">
+        {call.tool}({JSON.stringify(call.input)})
+      </code>
     </li>
   );
 }
@@ -229,7 +238,14 @@ export function ChatPanel({ chat, rules, onClose }: Props) {
               <TimelineLine key={item.seq} item={item} proofIndexes={proofIndexes} />
             ))}
           </ul>
-          {chat.error && <p className="mt-3 text-sm text-brudd">{chat.error.message}</p>}
+          {chat.error && (
+            <p className="mt-3 text-sm text-brudd">
+              <span data-dev>{chat.error.message}</span>
+              <span data-scene>
+                Noe gikk galt i denne samtalen. Regler uten bevis er ikke testet.
+              </span>
+            </p>
+          )}
           {chat.endReason && (
             <p className="mt-3 text-center text-xs text-muted">{END_REASONS[chat.endReason]}</p>
           )}
