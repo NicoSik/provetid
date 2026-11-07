@@ -17,6 +17,7 @@ dist/
 engine/data/runs/
 engine/data/scams/submitted/
 engine/data/limits.json
+engine/data/limits/
 
 # Personal tool output
 .superpowers/

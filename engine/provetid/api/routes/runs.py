@@ -2,7 +2,6 @@
 
 import asyncio
 import json
-import re
 import secrets
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
@@ -16,13 +15,12 @@ from provetid.config import Settings
 from provetid.eventlog import EventLog
 from provetid.events import Event, Mode
 from provetid.gateway.limits import Limits, limits_from_rules
-from provetid.plan.store import PlanNotFound, load_plan
+from provetid.plan.store import PlanNotFound, is_safe_id, load_plan
 from provetid.runner.run import run_plan
 from provetid.runner.steps import default_steps
 
 router = APIRouter(prefix="/api/runs")
 
-_SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 # A live stream sends an SSE comment this often while it waits, so that a browser or a proxy
 # does not drop the idle connection during a long model call.
 HEARTBEAT_S = 15.0
@@ -45,7 +43,7 @@ def _find_log(request: Request, run_id: str) -> tuple[EventLog, bool]:
     if run_id in live:
         return live[run_id], True
     path = _runs_dir(request.app.state.settings) / f"{run_id}.jsonl"
-    if not _SAFE_ID.match(run_id) or not path.is_file():
+    if not is_safe_id(run_id) or not path.is_file():
         raise HTTPException(status_code=404, detail="Fant ikke kjøringen.")
     return EventLog(run_id, path), False
 

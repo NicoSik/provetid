@@ -7,6 +7,6 @@ import { startRun } from "./runs";
  */
 export async function startLimitedRun(planId: string, limits: Limits): Promise<string> {
   const { run_id } = await startRun({ plan_id: planId, mode: "enforce", limits });
-  await putLimits(limits).catch(() => {});
+  await putLimits(limits, planId).catch(() => {});
   return run_id;
 }
