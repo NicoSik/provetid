@@ -3,7 +3,7 @@ import { startLimitedRun } from "../api/limitedRun";
 import { getLimits, type Limits } from "../api/limits";
 import { listRuns } from "../api/runs";
 import { replayName } from "../events/replay";
-import { getSession, updateSession } from "../state/session";
+import { DEMO_PLAN_ID, getSession, updateSession } from "../state/session";
 import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/signeringsrett", step: 4, title: "Signeringsrett" };
@@ -241,9 +241,24 @@ export default function Signeringsrett() {
   useEffect(() => {
     if (replay) return;
     let cancelled = false;
-    getLimits(getSession().planId).then(
-      (limits) => {
-        if (!cancelled) setSaved(limits);
+    // The plan the interview ran with. Only a plan that is gone (404) gives way to the demo plan.
+    const active = getSession().planId;
+    const load = getLimits(active).then(
+      (limits) => ({ limits, planId: active }),
+      (error: unknown) => {
+        const gone = error instanceof Error && error.message.includes("feil 404");
+        if (active === DEMO_PLAN_ID || !gone) throw error;
+        return getLimits(DEMO_PLAN_ID).then((limits) => ({ limits, planId: DEMO_PLAN_ID }));
+      },
+    );
+    load.then(
+      ({ limits, planId }) => {
+        if (cancelled) return;
+        // Runs of another plan must not stay as the «before» of this one.
+        if (planId !== active) {
+          updateSession({ planId, currentRunId: null, beforeRunId: null, afterRunId: null });
+        }
+        setSaved(limits);
       },
       () => {
         if (!cancelled) setFailed(true);

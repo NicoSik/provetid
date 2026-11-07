@@ -43,7 +43,8 @@ function stubEngine(
       if (url === "/api/limits" && method === "GET") {
         return jsonResponse(options.limits ?? SAVED, options.get ?? 200);
       }
-      if (url === "/api/limits" && method === "PUT") return jsonResponse(body, options.put ?? 200);
+      if (url.startsWith("/api/limits") && method === "PUT")
+        return jsonResponse(body, options.put ?? 200);
       if (url === "/api/runs" && method === "GET") {
         return jsonResponse(options.runs ?? [], options.listStatus ?? 200);
       }
@@ -334,8 +335,69 @@ describe("when there is no engine", () => {
 describe("the API client", () => {
   it("reads and writes the limits", async () => {
     await expect(getLimits()).resolves.toEqual(SAVED);
-    await putLimits({ ...SAVED, max_discount_percent: 5 });
+    await putLimits({ ...SAVED, max_discount_percent: 5 }, "egen");
     const put = calls.find((call) => call.method === "PUT");
+    expect(put?.url).toBe("/api/limits?plan_id=egen");
     expect(put?.body).toMatchObject({ max_discount_percent: 5 });
+  });
+});
+
+describe("per plan", () => {
+  const OTHER: Limits = { ...SAVED, max_discount_percent: 3 };
+
+  function stubPlans(gone: string[] = []) {
+    calls = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const method = init?.method ?? "GET";
+        const body = init?.body ? JSON.parse(String(init.body)) : undefined;
+        calls.push({ url, method, body });
+        if (url.startsWith("/api/limits") && method === "GET") {
+          const plan = new URLSearchParams(url.split("?")[1]).get("plan_id") ?? "demo";
+          if (gone.includes(plan)) return jsonResponse({}, 404);
+          return jsonResponse(plan === "demo" ? SAVED : OTHER);
+        }
+        if (url.startsWith("/api/limits")) return jsonResponse(body);
+        if (url === "/api/runs" && method === "GET") return jsonResponse([]);
+        if (url === "/api/runs") return jsonResponse({ run_id: "r2" });
+        throw new Error(`Uventet kall: ${url}`);
+      }),
+    );
+  }
+
+  afterEach(() => updateSession({ planId: "demo" }));
+
+  it("loads and saves the limits of the active plan", async () => {
+    stubPlans();
+    updateSession({ planId: "egen" });
+    const run = await openScreen();
+    expect(discount()).toHaveValue("3");
+    expect(calls[0].url).toBe("/api/limits?plan_id=egen");
+    fireEvent.click(run);
+    await waitFor(() => expect(window.location.hash).toBe("#/intervju"));
+    const put = calls.find((call) => call.method === "PUT");
+    expect(put?.url).toBe("/api/limits?plan_id=egen");
+  });
+
+  it("falls back to the demo plan when the stored plan is gone", async () => {
+    stubPlans(["borte"]);
+    updateSession({ planId: "borte", currentRunId: "r9", beforeRunId: "r8", afterRunId: "r9" });
+    await openScreen();
+    expect(discount()).toHaveValue("10");
+    expect(getSession()).toEqual({
+      currentRunId: null,
+      beforeRunId: null,
+      afterRunId: null,
+      planId: "demo",
+    });
+  });
+
+  it("does not fall back on an error that is not a 404", async () => {
+    stubEngine({ get: 500 });
+    updateSession({ planId: "egen" });
+    render(<Signeringsrett />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Fikk ikke kontakt med motoren");
+    expect(getSession().planId).toBe("egen");
   });
 });
