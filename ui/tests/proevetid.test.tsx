@@ -52,8 +52,8 @@ describe("Prøvetid", () => {
     render(<Proevetid />);
     fireEvent.click(await screen.findByRole("button", { name: "Si opp" }));
     expect(posted).toEqual([]);
-    // The keyboard driver lands on the safe choice first.
-    expect(screen.getByRole("button", { name: "Avbryt" })).toHaveFocus();
+    // The keyboard driver lands on the safe choice first. Focus moves in an effect, so wait for it.
+    await waitFor(() => expect(screen.getByRole("button", { name: "Avbryt" })).toHaveFocus());
     fireEvent.click(screen.getByRole("button", { name: "Ja, si opp nå" }));
     expect(await screen.findByText("Sagt opp")).toBeVisible();
     expect(posted).toEqual([{ dismissed: true }]);
@@ -67,7 +67,7 @@ describe("Prøvetid", () => {
     render(<Proevetid />);
     fireEvent.click(await screen.findByRole("button", { name: "Si opp" }));
     fireEvent.click(screen.getByRole("button", { name: "Avbryt" }));
-    expect(screen.getByRole("button", { name: "Si opp" })).toHaveFocus();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Si opp" })).toHaveFocus());
   });
 
   it("hires the bot again after a dismissal", async () => {

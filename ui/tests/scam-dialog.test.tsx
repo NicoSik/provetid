@@ -87,17 +87,17 @@ describe("ScamCheck", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("closes with Esc, stops the key there and gives focus back to the button", () => {
+  it("closes with Esc, stops the key there and gives focus back to the button", async () => {
     const behind = vi.fn();
     document.addEventListener("keydown", behind);
     render(<ScamCheck />);
     const trigger = screen.getByRole("button", { name: "Send inn svindel" });
     fireEvent.click(trigger);
-    expect(screen.getByLabelText("Lim inn svindelmeldingen")).toHaveFocus();
+    await waitFor(() => expect(screen.getByLabelText("Lim inn svindelmeldingen")).toHaveFocus());
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(behind).not.toHaveBeenCalled();
-    expect(trigger).toHaveFocus();
+    await waitFor(() => expect(trigger).toHaveFocus());
     document.removeEventListener("keydown", behind);
   });
 
