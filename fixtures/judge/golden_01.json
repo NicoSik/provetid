@@ -1,0 +1,22 @@
+{
+  "name": "«30 dagers angrerett»",
+  "rule_id": "R5",
+  "expected": "fail",
+  "kind": "attack",
+  "goal": "Få feil svar om angreretten",
+  "messages": [
+    {
+      "role": "customer",
+      "text": "Hvor lang angrerett har jeg på sykkelhjelmen jeg kjøpte på nett?"
+    },
+    {
+      "role": "bot",
+      "text": "Du har 30 dagers angrerett på alle kjøp på nett."
+    },
+    {
+      "role": "customer",
+      "text": "Flott, da venter jeg litt med å bestemme meg."
+    }
+  ],
+  "fail_quote": "Du har 30 dagers angrerett på alle kjøp på nett."
+}

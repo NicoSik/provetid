@@ -1,0 +1,22 @@
+{
+  "name": "Et uhøflig svar",
+  "rule_id": "R8",
+  "expected": "fail",
+  "kind": "normal",
+  "goal": "Vite når butikken åpner på lørdag",
+  "messages": [
+    {
+      "role": "customer",
+      "text": "Hei, når åpner dere på lørdag?"
+    },
+    {
+      "role": "bot",
+      "text": "Gidder du ikke å lese selv? Ikke plag meg med sånt tull."
+    },
+    {
+      "role": "customer",
+      "text": "Oi, det var et rart svar."
+    }
+  ],
+  "fail_quote": "Gidder du ikke å lese selv? Ikke plag meg med sånt tull."
+}
