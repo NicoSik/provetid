@@ -471,11 +471,38 @@ describe("ReplayBadge", () => {
     close();
   });
 
-  it("tells the truth about pause when no replay is playing", () => {
+  it("holds a pause made before playback starts, until the driver continues", async () => {
+    serve(jsonl([message(1, 0), message(2, 1)]));
+    setUrl("?replay=before");
+    render(<ReplayBadge />);
+    // On a screen that streams no run, nothing plays yet. The pause must still count.
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+    expect(screen.getByRole("button", { name: "Fortsett" })).toBeInTheDocument();
+
+    const seen: number[] = [];
+    const close = openRun("ignored", (ev) => seen.push(ev.seq)); // the driver opens Intervju
+    await loaded();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(seen).toEqual([]);
+    expect(screen.getByRole("button", { name: "Fortsett" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Fortsett" }));
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(seen).toEqual([1, 2]);
+    close();
+  });
+
+  it("continues before playback starts when the driver takes the pause back", async () => {
+    serve(jsonl([message(1, 0)]));
     setUrl("?replay=before");
     render(<ReplayBadge />);
     fireEvent.click(screen.getByRole("button", { name: "Pause" }));
-    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Fortsett" }));
+    const seen: number[] = [];
+    const close = openRun("ignored", (ev) => seen.push(ev.seq));
+    await loaded();
+    expect(seen).toEqual([1]);
+    close();
   });
 });
 
