@@ -11,7 +11,7 @@ import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/intervju", step: 2, title: "Intervju" };
 
-const CONNECTION_MESSAGES: Record<Exclude<ConnectionStatus, "connected">, string> = {
+export const CONNECTION_MESSAGES: Record<Exclude<ConnectionStatus, "connected">, string> = {
   lost: "Mistet kontakten med motoren. Prøver igjen …",
   missing: "Fant ikke denne kjøringen. Den kan være slettet.",
   replay_missing: "Fant ikke denne avspillingen.",
@@ -19,7 +19,7 @@ const CONNECTION_MESSAGES: Record<Exclude<ConnectionStatus, "connected">, string
 };
 
 // The engine's text can be raw tool output, so the audience gets a fixed line for each kind.
-const RUN_ERROR_TEXT: Record<ErrorData["kind"], string> = {
+export const RUN_ERROR_TEXT: Record<ErrorData["kind"], string> = {
   usage_limit: "Bruksgrensen er nådd. Kjøringen ble stoppet.",
   login: "Claude Code er ikke logget inn. Kjøringen ble stoppet.",
   call_failed: "Noe gikk galt under kjøringen.",

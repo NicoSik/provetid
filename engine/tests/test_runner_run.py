@@ -178,7 +178,9 @@ async def test_hanging_call_ends_chat_as_timeout(tmp_path: Path) -> None:
     )
     ended = [e for e in log.read() if e.type == "chat_ended"]
     assert [e.data["reason"] for e in ended] == ["timeout", "timeout"]
-    assert log.read()[-1].data["incomplete"] is False
+    # Every chat timed out, so the run proved nothing and must not count as a finished test.
+    assert log.read()[-1].data["incomplete"] is True
+    assert log.read()[-1].data["decision"] is None
 
 
 async def test_steps_run_in_order_after_each_chat(tmp_path: Path) -> None:
@@ -190,7 +192,11 @@ async def test_steps_run_in_order_after_each_chat(tmp_path: Path) -> None:
             outcome = "fail" if name == "one" else "pass"
             return VerdictData(
                 source="code",
-                results=[RuleResult(rule_id="R1", outcome=outcome, severity="high")],
+                results=[
+                    RuleResult(
+                        rule_id="R1" if name == "one" else "R2", outcome=outcome, severity="high"
+                    )
+                ],
             )
 
         return run
@@ -225,3 +231,33 @@ async def test_failing_step_is_an_internal_error_not_a_crash(tmp_path: Path) -> 
     errors = [e for e in log.read() if e.type == "error"]
     assert errors[0].data["kind"] == "internal"
     assert log.read()[-1].type == "run_finished"
+
+
+async def run_with_verdict(tmp_path: Path, outcome: str, stop: bool) -> EventLog:
+    async def step(plan, customer, record):
+        return VerdictData(
+            source="code",
+            results=[
+                RuleResult.model_validate({"rule_id": "R1", "outcome": outcome, "severity": "high"})
+            ],
+        )
+
+    log = log_for(tmp_path)
+    transport = FakeTransport({"bot": [UsageLimitReached("grense")]}) if stop else SlowTransport(0)
+    await run_plan(plan_of(1), "observe", Limits(), transport, settings_for(tmp_path), log, [step])
+    return log
+
+
+async def test_run_finished_carries_the_decision_from_the_log(tmp_path: Path) -> None:
+    log = await run_with_verdict(tmp_path, "fail", False)
+    data = log.read()[-1].data
+    assert data["decision"] == "Ikke ansett"
+    assert data["incomplete"] is False
+    assert data["totals"]["fail_high"] >= 1
+
+
+async def test_a_run_that_was_stopped_is_incomplete_with_no_ready_decision(tmp_path: Path) -> None:
+    log = await run_with_verdict(tmp_path, "pass", True)
+    data = log.read()[-1].data
+    assert data["incomplete"] is True
+    assert data["decision"] is None
