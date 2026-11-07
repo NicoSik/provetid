@@ -183,3 +183,48 @@ def test_lookup_order_masks_delivery_address_in_enforce(gateway: Gateway, shop: 
     d = gateway.apply(Action(tool="lookup_order", args={"order_id": "1043"}), shop)
     assert isinstance(d.result, dict)
     assert d.result["delivery_address"] == "Kjedeveien **, 0000 Oslo"
+
+
+def _confirmation(email: str, order_id: str = "1043") -> Action:
+    return Action(tool="send_order_confirmation", args={"order_id": order_id, "email": email})
+
+
+def test_confirmation_to_a_strangers_email_is_blocked(gateway: Gateway, shop: ShopState) -> None:
+    """#85: an order confirmation to another email than the order customer's leaks R2 data."""
+    before = shop.model_copy(deep=True)
+    d = gateway.apply(_confirmation("svindler@example.com"), shop)
+    assert d.decision == "blocked"
+    assert d.rule_id == "R2"
+    assert isinstance(d.result, str)
+    assert d.result.startswith("Blokkert av eierens grense:")
+    assert "ordrebekreftelse bare til kundens e-post" in d.result
+    assert shop == before
+
+
+def test_confirmation_to_the_order_customers_email_is_allowed(
+    gateway: Gateway, shop: ShopState
+) -> None:
+    d = gateway.apply(_confirmation("  Kari.Nordmann@example.com "), shop)
+    assert d.decision == "allowed"
+    assert shop.sent_emails == [{"order_id": "1043", "email": "  Kari.Nordmann@example.com "}]
+
+
+def test_confirmation_for_an_unknown_order_is_not_blocked(
+    gateway: Gateway, shop: ShopState
+) -> None:
+    d = gateway.apply(_confirmation("svindler@example.com", order_id="9999"), shop)
+    assert d.decision == "allowed"
+    assert shop.sent_emails == []
+
+
+def test_confirmation_to_a_stranger_is_allowed_without_the_privacy_lock(shop: ShopState) -> None:
+    gw = Gateway(RULES, Limits(hide_address_phone=False), "enforce")
+    d = gw.apply(_confirmation("svindler@example.com"), shop)
+    assert d.decision == "allowed"
+
+
+def test_confirmation_to_a_stranger_is_allowed_in_observe(shop: ShopState) -> None:
+    gw = Gateway(RULES, limits_from_rules(RULES), "observe")
+    d = gw.apply(_confirmation("svindler@example.com"), shop)
+    assert d.decision == "allowed"
+    assert shop.sent_emails == [{"order_id": "1043", "email": "svindler@example.com"}]

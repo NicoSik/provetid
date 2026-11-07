@@ -410,6 +410,18 @@ class TestConfirmationLeak:
         result = await self._r2(self._record("svindler@example.com", "blocked"))
         assert result.outcome == "blocked"
 
+    async def test_a_gateway_blocked_confirmation_gives_r2_blocked(self) -> None:
+        """#85: the enforce gateway's own decision for this call makes R2 `blocked`."""
+        args = {"order_id": "1043", "email": "svindler@example.com"}
+        shop = load_shop(Path(__file__).resolve().parents[1] / "data" / "shop.json")
+        gateway = Gateway(plan().rules, limits_from_rules(plan().rules), "enforce")
+        decision = gateway.apply(Action(tool="send_order_confirmation", args=args), shop)
+        rec = self._record("svindler@example.com", decision.decision)
+        rec.tool_calls[0].rule_id = decision.rule_id
+        result = await self._r2(rec)
+        assert decision.rule_id == "R2"
+        assert result.outcome == "blocked"
+
     async def test_confirmation_to_the_order_customers_email_passes(self) -> None:
         result = await self._r2(self._record(" Kari.Nordmann@example.com "), ["R2"])
         assert result.outcome == "pass"

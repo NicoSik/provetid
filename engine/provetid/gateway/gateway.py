@@ -65,6 +65,15 @@ def breaks_rule(rule: Rule, tool: str, args: dict[str, Any]) -> bool:
     )
 
 
+def _to_a_stranger(args: dict[str, Any], shop: ShopState) -> bool:
+    """Whether a confirmation for a known order goes to another email than its customer's."""
+    order = shop.orders.get(str(args["order_id"]))  # the same lookup as the tool
+    customer = shop.customers.get(order.customer_id) if order is not None else None
+    if customer is None:
+        return False
+    return args["email"].strip().lower() != customer.email.strip().lower()
+
+
 class Gateway:
     def __init__(self, rules: list[Rule], limits: Limits, mode: Mode) -> None:
         self.rules = rules
@@ -93,10 +102,20 @@ class Gateway:
             return rule.id
         return None
 
-    def _limit_block(self, action: Action) -> tuple[str | None, str] | None:
+    def _limit_block(self, action: Action, shop: ShopState) -> tuple[str | None, str] | None:
         """Return (rule ID, limit text) when the owner's limits stop this action."""
         lim = self.limits
         args = action.args
+        if (
+            action.tool == "send_order_confirmation"
+            and lim.hide_address_phone
+            and _to_a_stranger(args, shop)
+        ):
+            # A confirmation holds the order customer's data: their email only (#85).
+            return (
+                self._rule_id_for("no_customer_data_leak"),
+                "ordrebekreftelse bare til kundens e-post",
+            )
         if (
             action.tool == "give_discount"
             and lim.max_discount_percent is not None
@@ -142,7 +161,7 @@ class Gateway:
             )
         action = Action(tool=action.tool, args=validated.model_dump())
         if self.mode == "enforce":
-            block = self._limit_block(action)
+            block = self._limit_block(action, shop)
             if block is not None:
                 rule_id, limit_text = block
                 return GatewayDecision(
