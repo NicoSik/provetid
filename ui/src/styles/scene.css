@@ -1,0 +1,26 @@
+/* Scene-modus (D44): larger text, a light theme for a projector, no developer details. */
+:root.scene {
+  font-size: 125%;
+  color-scheme: light;
+  --color-surface: #f4f5fa;
+  --color-raised: #ffffff;
+  --color-raised-hover: #e9ebf4;
+  --color-line: #bfc5d8;
+  --color-ink: #14172b;
+  --color-muted: #4a5070;
+  --color-pagar: #1d56c2;
+  --color-bestatt: #0b6b3c;
+  --color-brudd: #b91c26;
+  --color-stoppet: #8a5000;
+  --color-ikke-testet: #4f5672;
+}
+
+/* data-dev is for the team. data-scene is the plain text that replaces it for the audience. */
+.scene [data-dev],
+[data-scene] {
+  display: none;
+}
+
+.scene [data-scene] {
+  display: inline;
+}

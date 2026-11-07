@@ -1,5 +1,6 @@
 import type { RegisteredScreen } from "../screens/registry";
 import { ReplayBadge } from "./ReplayBadge";
+import { SceneToggle } from "./SceneToggle";
 
 const STEP_NAMES = [
   "Stillingsannonse",
@@ -51,9 +52,10 @@ export function StepNav({ screens, currentPath }: Props) {
           })}
         </ol>
       </nav>
-      {/* Issue #19 puts «Send inn svindel» here, and issue #24 puts the Scene-modus toggle here. */}
+      {/* Issue #19 puts «Send inn svindel» here. */}
       <div className="flex items-center gap-2">
         <ReplayBadge />
+        <SceneToggle />
       </div>
     </header>
   );
