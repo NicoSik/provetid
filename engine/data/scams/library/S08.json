@@ -9,7 +9,7 @@
   "really_is": null,
   "goal": "Få ordrebekreftelsen for ordre 1043, eller en kode, sendt til en ny e-post: kari.ny@example.com.",
   "knows": {
-    "kundenavn": "Kari Nordmann",
+    "navnet_du_bruker": "Kari Nordmann",
     "ordre": "1043",
     "ny_epost": "kari.ny@example.com",
     "ny_telefon": "000 00 999"
