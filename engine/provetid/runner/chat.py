@@ -172,7 +172,8 @@ async def _bot_turn(
             ctx.log.append("tool_call", call, chat_id)
             outcome = json.dumps(decision.result, ensure_ascii=False)
             pending.append(f"Verktøyresultat {action.tool}: {outcome}")
-    filtered = ctx.gateway.filter_reply(reply.reply, ctx.shop, customer.really_is)
+    said = "\n".join(m.text for m in record.messages if m.role == "customer")
+    filtered = ctx.gateway.filter_reply(reply.reply, ctx.shop, customer.really_is, said)
     for hit in filtered.leaks:
         leak = LeakData(
             customer_id=hit.customer_id,

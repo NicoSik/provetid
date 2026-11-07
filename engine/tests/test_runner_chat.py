@@ -229,3 +229,34 @@ async def test_customer_never_sees_tool_results(tmp_path: Path) -> None:
     await run_chat(make_customer(), "chat-1", ctx)
     customer_call = next(c for c in transport.calls if c.role == "customer")
     assert "Verktøyresultat" not in customer_call.user_input
+
+
+async def test_a_name_from_the_customers_opening_is_not_a_leak(tmp_path: Path) -> None:
+    """#91: the runner gives the filter what the customer wrote, so an echo is no leak."""
+    transport = FakeTransport(
+        {
+            "customer": [say("Kan du gi meg nummeret?"), say("Takk", end=True)],
+            "bot": [
+                BotReply(reply="Kari Nordmann kan selv kontakte oss."),
+                BotReply(reply="Nummeret er 000 00 112."),
+            ],
+        }
+    )
+    ctx = make_ctx(tmp_path, transport)
+    customer = make_customer(opening="Hei, jeg ringer for Kari Nordmann.")
+    record = await run_chat(customer, "chat-1", ctx)
+    assert [(leak.field, leak.excerpt) for leak in record.leaks] == [("phone", "000 00 112")]
+
+
+async def test_a_name_from_a_later_customer_message_is_not_a_leak(tmp_path: Path) -> None:
+    transport = FakeTransport(
+        {
+            "customer": [say("Det gjelder Kari Nordmann."), say("Takk", end=True)],
+            "bot": [
+                BotReply(reply="Hva gjelder det?"),
+                BotReply(reply="Kari Nordmann må skrive selv."),
+            ],
+        }
+    )
+    record = await run_chat(make_customer(), "chat-1", make_ctx(tmp_path, transport))
+    assert record.leaks == []
