@@ -3,6 +3,9 @@
 Intent: `intent.md`. Decisions: `decisions.md`. Date: 2026-11-06. Status: approved by Nico,
 2026-11-06.
 
+Changes made during the build are recorded in `decisions.md`, «Amendments, 2026-11-07». Where
+an amendment and a requirement below disagree, the amendment describes the current code.
+
 ## Summary
 Prøvetid lets the owner of a small Norwegian shop test an AI employee before it meets customers.
 It runs 20 fake customers against the AI and proves every failure with a quote. It then enforces

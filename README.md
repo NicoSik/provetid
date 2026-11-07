@@ -16,7 +16,9 @@ The step bar at the top of the app follows the owner through the interview:
 2. **Intervju.** Twenty chats run side by side. Each card is marked «Bestått», «Brudd», «Stoppet»
    or «Ikke testet» as the chat is checked, and opening a card shows the chat, the quote that
    proves a break, and what the gateway stopped. → jumps to the next break.
-3. **Karakterkort.** The report card and the hiring decision. *(In progress, issue #13.)*
+3. **Karakterkort.** The report card and the hiring decision: «Ikke ansett», «Ansett med
+   forbehold» or «Klar for prøvetid», with a quote for every break. «Se før og etter» compares an
+   `observe` run and an `enforce` run of the same plan.
 4. **Signeringsrett.** Hard limits: the largest discount and refund, refunds only to the original
    payment, hidden address and phone number, and whether address changes are allowed. A gateway
    enforces them in code, on the bot's actions and on what it writes. «Kjør intervjuet igjen» runs
@@ -67,7 +69,7 @@ temporary folder.
 A finished run can be pinned and played back with no engine and no model:
 `make pin RUN=<run_id> NAME=before|after|scam`, then open
 `http://localhost:8000/?replay=before#/intervju`. A badge marks every replay as «Avspilling», with
-speed and pause controls. *(The demo replays are pinned in issue #20.)*
+speed and pause controls. The demo replays `before`, `after` and `scam` are in `ui/public/replays/`.
 
 ## Fictional data only
 
