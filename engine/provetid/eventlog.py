@@ -23,11 +23,14 @@ class EventLog:
         self._waiters: set[asyncio.Event] = set()
         self._start = time.monotonic()
         if path.is_file():
-            lines = [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            # Split the bytes on "\n" only: str.splitlines() would also split on U+2028, U+2029
+            # and \x85, which can appear unescaped inside message text. Each line is decoded on
+            # its own, so a line torn inside a letter such as «ø» fails like any torn line.
+            lines = [line for line in path.read_bytes().split(b"\n") if line.strip()]
             for position, line in enumerate(lines, start=1):
                 try:
-                    self._events.append(parse_event(line))
-                except ValueError:
+                    self._events.append(parse_event(line.decode("utf-8")))
+                except ValueError:  # includes UnicodeDecodeError
                     # A crash can tear the line it was writing. Any other broken line is an error.
                     if position != len(lines):
                         raise

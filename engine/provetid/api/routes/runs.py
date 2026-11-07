@@ -23,6 +23,9 @@ from provetid.runner.steps import default_steps
 router = APIRouter(prefix="/api/runs")
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
+# A live stream sends an SSE comment this often while it waits, so that a browser or a proxy
+# does not drop the idle connection during a long model call.
+HEARTBEAT_S = 15.0
 
 
 class RunRequest(BaseModel):
@@ -45,6 +48,14 @@ def _find_log(request: Request, run_id: str) -> tuple[EventLog, bool]:
     if not _SAFE_ID.match(run_id) or not path.is_file():
         raise HTTPException(status_code=404, detail="Fant ikke kjøringen.")
     return EventLog(run_id, path), False
+
+
+def _open_log(request: Request, run_id: str) -> tuple[EventLog, bool]:
+    """Like `_find_log`, but a log broken before its last line is a 422, not a 500."""
+    try:
+        return _find_log(request, run_id)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Kjøringen er skadet.") from None
 
 
 def _meta(settings: Settings, run_id: str) -> dict[str, str]:
@@ -97,7 +108,10 @@ async def list_runs(request: Request) -> list[dict[str, str | bool]]:
     ids = sorted((p.stem for p in folder.glob("*.jsonl")), reverse=True) if folder.is_dir() else []
     rows: list[dict[str, str | bool]] = []
     for run_id in ids:
-        log, _ = _find_log(request, run_id)
+        try:
+            log, _ = _find_log(request, run_id)
+        except ValueError:
+            continue  # a log broken before its last line; the other runs still list
         events = log.read()
         meta = _meta(settings, run_id)
         mode = meta.get("mode") or (events[0].data.get("mode", "") if events else "")
@@ -114,14 +128,14 @@ async def list_runs(request: Request) -> list[dict[str, str | bool]]:
 
 @router.get("/{run_id}")
 async def get_run(run_id: str, request: Request) -> list[Event]:
-    log, _ = _find_log(request, run_id)
+    log, _ = _open_log(request, run_id)
     return log.read()
 
 
 @router.get("/{run_id}/status")
 async def run_status(run_id: str, request: Request) -> dict[str, bool | int]:
     """Whether more events can come. A log that is neither live nor finished was cut off."""
-    log, live = _find_log(request, run_id)
+    log, live = _open_log(request, run_id)
     return {"live": live, "finished": log.finished, "last_seq": log.last_seq}
 
 
@@ -134,13 +148,16 @@ def _after(request: Request, after: int | None) -> int:
 
 @router.get("/{run_id}/events")
 async def stream_events(run_id: str, request: Request, after: int | None = None):
-    log, live = _find_log(request, run_id)
+    log, live = _open_log(request, run_id)
     start = _after(request, after)
 
     async def frames() -> AsyncIterator[str]:
-        events = log.subscribe(start) if live else _replay(log, start)
+        events = _with_heartbeat(log.subscribe(start)) if live else _replay(log, start)
         async for event in events:
-            yield f"id: {event.seq}\ndata: {event.model_dump_json()}\n\n"
+            if event is None:
+                yield ": ping\n\n"
+            else:
+                yield f"id: {event.seq}\ndata: {event.model_dump_json()}\n\n"
 
     return StreamingResponse(
         frames(),
@@ -152,3 +169,27 @@ async def stream_events(run_id: str, request: Request, after: int | None = None)
 async def _replay(log: EventLog, after: int) -> AsyncIterator[Event]:
     for event in log.read(after):
         yield event
+
+
+async def _with_heartbeat(events: AsyncIterator[Event]) -> AsyncIterator[Event | None]:
+    """Yield the events, and None each time HEARTBEAT_S passes with no event.
+
+    The wait for the next event runs in its own task, so a heartbeat never cancels it.
+    """
+    pending = asyncio.ensure_future(anext(events))
+    try:
+        while True:
+            done, _ = await asyncio.wait({pending}, timeout=HEARTBEAT_S)
+            if not done:
+                yield None
+                continue
+            try:
+                event = pending.result()
+            except StopAsyncIteration:
+                return
+            yield event
+            pending = asyncio.ensure_future(anext(events))
+    finally:
+        pending.cancel()
+        await asyncio.wait({pending})  # let the subscriber's own cleanup run now
+        await events.aclose()
