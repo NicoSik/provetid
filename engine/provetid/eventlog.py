@@ -23,15 +23,24 @@ class EventLog:
         self._waiters: set[asyncio.Event] = set()
         self._start = time.monotonic()
         if path.is_file():
-            for line in path.read_text(encoding="utf-8").splitlines():
-                if line.strip():
+            lines = [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            for position, line in enumerate(lines, start=1):
+                try:
                     self._events.append(parse_event(line))
+                except ValueError:
+                    # A crash can tear the line it was writing. Any other broken line is an error.
+                    if position != len(lines):
+                        raise
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
 
     @property
     def waiter_count(self) -> int:
         return len(self._waiters)
+
+    @property
+    def last_seq(self) -> int:
+        return len(self._events)
 
     @property
     def finished(self) -> bool:

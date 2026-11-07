@@ -118,6 +118,13 @@ async def get_run(run_id: str, request: Request) -> list[Event]:
     return log.read()
 
 
+@router.get("/{run_id}/status")
+async def run_status(run_id: str, request: Request) -> dict[str, bool | int]:
+    """Whether more events can come. A log that is neither live nor finished was cut off."""
+    log, live = _find_log(request, run_id)
+    return {"live": live, "finished": log.finished, "last_seq": log.last_seq}
+
+
 def _after(request: Request, after: int | None) -> int:
     if after is not None:
         return after

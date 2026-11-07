@@ -147,3 +147,61 @@ def test_app_module_exposes_app() -> None:
     from provetid.api import app as module
 
     assert module.app.title
+
+
+async def test_status_of_a_finished_run(settings: Settings) -> None:
+    async with client_for(settings) as client:
+        r = await client.post("/api/runs", json={"plan_id": "demo", "mode": "observe"})
+        run_id = r.json()["run_id"]
+        events = await wait_finished(client, run_id)
+        for _ in range(100):
+            status = (await client.get(f"/api/runs/{run_id}/status")).json()
+            if not status["live"]:
+                break
+            await asyncio.sleep(0.01)
+    assert status == {"live": False, "finished": True, "last_seq": len(events)}
+
+
+async def test_status_of_a_run_that_is_live(settings: Settings) -> None:
+    release = asyncio.Event()
+
+    class Waiting(FakeTransport):
+        async def call(self, *args, **kwargs):
+            await release.wait()
+            return await super().call(*args, **kwargs)
+
+    transport = Waiting(
+        {
+            "bot": [BotReply(reply="Hei!")],
+            "customer": [CustomerReply(message="Takk", end_chat=True)],
+        }
+    )
+    async with client_for(settings, transport) as client:
+        r = await client.post("/api/runs", json={"plan_id": "demo", "mode": "observe"})
+        run_id = r.json()["run_id"]
+        await asyncio.sleep(0.01)
+        status = (await client.get(f"/api/runs/{run_id}/status")).json()
+        release.set()
+        await wait_finished(client, run_id)
+    assert status["live"] is True
+    assert status["finished"] is False
+    assert status["last_seq"] >= 1
+
+
+async def test_status_of_a_log_that_was_cut_off(settings: Settings) -> None:
+    async with client_for(settings) as client:
+        r = await client.post("/api/runs", json={"plan_id": "demo", "mode": "observe"})
+        run_id = r.json()["run_id"]
+        await wait_finished(client, run_id)
+    path = settings.data_dir / "runs" / f"{run_id}.jsonl"
+    first_two = path.read_text(encoding="utf-8").splitlines()[:2]
+    path.write_text("\n".join(first_two) + "\n", encoding="utf-8")
+    async with client_for(settings) as client:
+        status = (await client.get(f"/api/runs/{run_id}/status")).json()
+    assert status == {"live": False, "finished": False, "last_seq": 2}
+
+
+async def test_status_of_an_unknown_run_is_404(settings: Settings) -> None:
+    async with client_for(settings) as client:
+        r = await client.get("/api/runs/finnes-ikke/status")
+    assert r.status_code == 404

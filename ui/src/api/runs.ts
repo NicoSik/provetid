@@ -39,3 +39,24 @@ export async function getRun(runId: string): Promise<RunEvent[]> {
 export async function listRuns(): Promise<RunSummary[]> {
   return readJson(await fetch("/api/runs"));
 }
+
+const STATUS_TIMEOUT_MS = 3000;
+
+export type RunStatus = {
+  live: boolean;
+  finished: boolean;
+  last_seq: number;
+};
+
+/** What the engine knows about a run: "missing" if it is gone, `null` if the engine cannot answer. */
+export async function getRunStatus(runId: string): Promise<RunStatus | "missing" | null> {
+  try {
+    const response = await fetch(`/api/runs/${encodeURIComponent(runId)}/status`, {
+      signal: AbortSignal.timeout(STATUS_TIMEOUT_MS),
+    });
+    if (response.status === 404) return "missing";
+    return await readJson<RunStatus>(response);
+  } catch {
+    return null;
+  }
+}

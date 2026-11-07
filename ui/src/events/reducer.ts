@@ -40,6 +40,8 @@ export type ChatView = {
   resultSources: Record<string, VerdictData["source"]>;
   /** The judge follows the code checks (D9). Until then, a pass is not final. */
   judged: boolean;
+  /** The code checks have sent a verdict, also if it holds no results. */
+  codeChecked: boolean;
   summary: string | null;
   ended: boolean;
   endReason: ChatEndedData["reason"] | null;
@@ -83,16 +85,44 @@ const BROKEN_ENDS: ReadonlyArray<ChatView["endReason"]> = ["refused", "error", "
 const RUN_STOPPING_ERRORS: ReadonlyArray<ErrorData["kind"]> = ["usage_limit", "login"];
 
 /**
- * A rule break shows at once. A pass waits for the judge or the end of the run, so that no card
- * goes green and then red. `run_finished` makes every status final: nothing more will arrive.
+ * A rule break shows at once, from a verdict or from what the log already shows. The code checks
+ * have the final word (D10), but only on the rule they name: a verdict on one rule never clears
+ * a break of another. A pass waits for the judge or the end of the run, so that no card goes green
+ * and then red. `run_finished` makes every status final: nothing more will arrive.
  */
-function statusOf(chat: ChatView, runFinished: boolean): ChatStatus {
+function statusOf(
+  chat: ChatView,
+  run: Pick<RunState, "rules" | "mode">,
+  finished: RunFinishedData | null,
+): ChatStatus {
   const outcomes = Object.values(chat.results).map((result) => result.outcome);
-  if (outcomes.includes("fail")) return "Brudd";
-  if (outcomes.includes("blocked")) return "Stoppet";
-  if (BROKEN_ENDS.includes(chat.endReason)) return "Ikke testet";
-  if (!runFinished && !(chat.ended && chat.judged)) return "Pågår";
+  const logStands = (ruleId: string | null) =>
+    ruleId === null ? !chat.codeChecked : chat.resultSources[ruleId] !== "code";
+  const leakRule = run.rules.find((rule) => rule.check.type === "no_customer_data_leak");
+  const leaksStand = logStands(leakRule?.id ?? null);
+
+  const broke =
+    outcomes.includes("fail") ||
+    (leaksStand && chat.leaks.some((leak) => !leak.blocked)) ||
+    chat.toolCalls.some((call) => call.decision === "flagged" && logStands(call.rule_id));
+  if (broke) return "Brudd";
+
+  // A block with no rule is an owner's limit that matches no rule, or a bot mistake such as bad
+  // arguments. With no limits in force it can only be the mistake.
+  const stoppedByLimit = (call: ToolCallData) =>
+    call.decision === "blocked" &&
+    (call.rule_id !== null || run.mode === "enforce") &&
+    logStands(call.rule_id);
+  const stopped =
+    outcomes.includes("blocked") ||
+    (leaksStand && chat.leaks.some((leak) => leak.blocked)) ||
+    chat.toolCalls.some(stoppedByLimit);
+  if (stopped) return "Stoppet";
+  if (BROKEN_ENDS.includes(chat.endReason) || chat.error) return "Ikke testet";
+  if (!finished && !(chat.ended && chat.judged)) return "Pågår";
   if (!chat.ended) return "Ikke testet";
+  // A stopped run can cancel a chat that waits for the judge, with no event to say so.
+  if (finished?.incomplete && !chat.judged) return "Ikke testet";
   return outcomes.every((outcome) => outcome === "not_tested") ? "Ikke testet" : "Bestått";
 }
 
@@ -109,6 +139,7 @@ function mergeVerdict(chat: ChatView, verdict: VerdictData): Partial<ChatView> {
     results,
     resultSources,
     judged: chat.judged || verdict.source === "judge",
+    codeChecked: chat.codeChecked || verdict.source === "code",
     summary: verdict.summary ?? chat.summary,
   };
 }
@@ -126,6 +157,7 @@ function newChat(id: string, ev: Extract<RunEvent, { type: "chat_started" }>): C
     results: {},
     resultSources: {},
     judged: false,
+    codeChecked: false,
     summary: null,
     ended: false,
     endReason: null,
@@ -176,7 +208,7 @@ export function reduce(state: RunState, ev: RunEvent): RunState {
     const chats: Record<string, ChatView> = {};
     for (const id of state.order) {
       const chat = state.chats[id];
-      const status = statusOf(chat, true);
+      const status = statusOf(chat, state, ev.data);
       chats[id] = status === chat.status ? chat : { ...chat, status };
     }
     return { ...next, chats, finished: ev.data };
@@ -195,6 +227,18 @@ export function reduce(state: RunState, ev: RunEvent): RunState {
   if (!changes) return next;
 
   const updated = { ...chat, ...changes };
-  updated.status = statusOf(updated, state.finished !== null);
+  updated.status = statusOf(updated, state, state.finished);
   return { ...next, chats: { ...state.chats, [ev.chat_id]: updated } };
+}
+
+/** Settles a run whose log ends with no `run_finished`, because the engine stopped mid-run. */
+export function abandonRun(state: RunState, runId: string): RunState {
+  return reduce(state, {
+    run_id: state.runId ?? runId,
+    seq: (state.lastSeq ?? 0) + 1,
+    t: 0,
+    type: "run_finished",
+    chat_id: null,
+    data: { totals: {}, decision: null, incomplete: true },
+  });
 }

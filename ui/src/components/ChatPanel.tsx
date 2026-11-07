@@ -1,3 +1,4 @@
+import { type ReactNode, useLayoutEffect, useRef } from "react";
 import type { ChatStatus, ChatView, TimelineItem } from "../events/reducer";
 import type {
   ChatEndedData,
@@ -109,6 +110,61 @@ function TimelineLine({ item, proofIndexes }: { item: TimelineItem; proofIndexes
   );
 }
 
+// Room for rounding only, so that a small nudge up counts as scrolling away.
+const AT_BOTTOM_PX = 8;
+
+function isAtBottom(element: HTMLElement): boolean {
+  return element.scrollHeight - element.scrollTop - element.clientHeight <= AT_BOTTOM_PX;
+}
+
+/**
+ * Follows new lines while the reader is at the bottom, and leaves a reader who scrolled up alone.
+ * A long chat opens at the top. When a rule break arrives for a reader who follows, it goes to the
+ * top, because the proof is there.
+ */
+function FollowingScroll({
+  lines,
+  hasBreak,
+  children,
+}: {
+  lines: string;
+  hasBreak: boolean;
+  children: ReactNode;
+}) {
+  const scroller = useRef<HTMLDivElement>(null);
+  const following = useRef(false);
+  const hadBreak = useRef(hasBreak);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `lines` says when the content grew.
+  useLayoutEffect(() => {
+    const element = scroller.current;
+    if (!element) return;
+    if (following.current) element.scrollTop = element.scrollHeight;
+    following.current = isAtBottom(element);
+  }, [lines]);
+
+  useLayoutEffect(() => {
+    const element = scroller.current;
+    if (element && hasBreak && !hadBreak.current && following.current) {
+      element.scrollTop = 0;
+      following.current = false;
+    }
+    hadBreak.current = hasBreak;
+  }, [hasBreak]);
+
+  return (
+    <div
+      ref={scroller}
+      onScroll={(event) => {
+        following.current = isAtBottom(event.currentTarget);
+      }}
+      className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4"
+    >
+      {children}
+    </div>
+  );
+}
+
 type Props = {
   chat: ChatView;
   rules: Rule[];
@@ -124,6 +180,9 @@ export function ChatPanel({ chat, rules, onClose }: Props) {
       result.outcome === "fail" && result.message_index !== null ? [result.message_index] : [],
     ),
   );
+
+  const lines = [chat.timeline.length, chat.endReason, chat.error?.message].join("|");
+  const hasBreak = results.some((result) => result.outcome === "fail");
 
   return (
     <aside
@@ -148,7 +207,7 @@ export function ChatPanel({ chat, rules, onClose }: Props) {
       </div>
 
       {/* The key resets the scroll position when → moves to another chat. */}
-      <div key={chat.id} className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
+      <FollowingScroll key={chat.id} lines={lines} hasBreak={hasBreak}>
         {results.length > 0 && (
           <section aria-label="Resultat">
             <ul className="space-y-2">
@@ -175,7 +234,7 @@ export function ChatPanel({ chat, rules, onClose }: Props) {
             <p className="mt-3 text-center text-xs text-muted">{END_REASONS[chat.endReason]}</p>
           )}
         </section>
-      </div>
+      </FollowingScroll>
     </aside>
   );
 }
