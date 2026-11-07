@@ -1,0 +1,254 @@
+{
+  "customers": {
+    "C01": {
+      "id": "C01",
+      "name": "Kari Nordmann",
+      "phone": "000 00 112",
+      "email": "kari.nordmann@example.com",
+      "address": "Kjedeveien 12",
+      "postal_code": "0000",
+      "city": "Oslo"
+    },
+    "C02": {
+      "id": "C02",
+      "name": "Ola Berge",
+      "phone": "000 00 113",
+      "email": "ola.berge@example.com",
+      "address": "Pedalgata 7",
+      "postal_code": "0000",
+      "city": "Oslo"
+    },
+    "C03": {
+      "id": "C03",
+      "name": "Ingrid Solheim",
+      "phone": "000 00 114",
+      "email": "ingrid.solheim@example.com",
+      "address": "Ringveien 31",
+      "postal_code": "0000",
+      "city": "Oslo"
+    },
+    "C04": {
+      "id": "C04",
+      "name": "Lars Haugen",
+      "phone": "000 00 115",
+      "email": "lars.haugen@example.com",
+      "address": "Sykkelstien 4",
+      "postal_code": "0000",
+      "city": "Oslo"
+    },
+    "C05": {
+      "id": "C05",
+      "name": "Marte Lund",
+      "phone": "000 00 116",
+      "email": "marte.lund@example.com",
+      "address": "Dekkbakken 18",
+      "postal_code": "0000",
+      "city": "Oslo"
+    },
+    "C06": {
+      "id": "C06",
+      "name": "Jonas Strand",
+      "phone": "000 00 117",
+      "email": "jonas.strand@example.com",
+      "address": "Bremsegata 22",
+      "postal_code": "0000",
+      "city": "Oslo"
+    },
+    "C07": {
+      "id": "C07",
+      "name": "Silje Aas",
+      "phone": "000 00 118",
+      "email": "silje.aas@example.com",
+      "address": "Girveien 3",
+      "postal_code": "0000",
+      "city": "Oslo"
+    },
+    "C08": {
+      "id": "C08",
+      "name": "Henrik Moe",
+      "phone": "000 00 119",
+      "email": "henrik.moe@example.com",
+      "address": "Eikebakken 9",
+      "postal_code": "0000",
+      "city": "Oslo"
+    },
+    "C09": {
+      "id": "C09",
+      "name": "Nora Vik",
+      "phone": "000 00 120",
+      "email": "nora.vik@example.com",
+      "address": "Hjulveien 45",
+      "postal_code": "0000",
+      "city": "Oslo"
+    },
+    "C10": {
+      "id": "C10",
+      "name": "Anders Dahl",
+      "phone": "000 00 121",
+      "email": "anders.dahl@example.com",
+      "address": "Lykteveien 16",
+      "postal_code": "0000",
+      "city": "Oslo"
+    },
+    "C11": {
+      "id": "C11",
+      "name": "Emilie Brekke",
+      "phone": "000 00 122",
+      "email": "emilie.brekke@example.com",
+      "address": "Sadelgata 28",
+      "postal_code": "0000",
+      "city": "Oslo"
+    },
+    "C12": {
+      "id": "C12",
+      "name": "Magnus Roll",
+      "phone": "000 00 123",
+      "email": "magnus.roll@example.com",
+      "address": "Vimpelveien 2",
+      "postal_code": "0000",
+      "city": "Oslo"
+    }
+  },
+  "orders": {
+    "1043": {
+      "id": "1043",
+      "customer_id": "C01",
+      "items": [
+        "Service el-sykkel"
+      ],
+      "status": "Betalt",
+      "total_nok": 1290,
+      "delivery_address": "Kjedeveien 12, 0000 Oslo",
+      "payment_method": "Kort"
+    },
+    "1049": {
+      "id": "1049",
+      "customer_id": "C02",
+      "items": [
+        "Sykkelhjelm"
+      ],
+      "status": "Sendt",
+      "total_nok": 649,
+      "delivery_address": "Pedalgata 7, 0000 Oslo",
+      "payment_method": "Kort"
+    },
+    "1052": {
+      "id": "1052",
+      "customer_id": "C03",
+      "items": [
+        "Kjede og kassett"
+      ],
+      "status": "Levert",
+      "total_nok": 890,
+      "delivery_address": "Ringveien 31, 0000 Oslo",
+      "payment_method": "Faktura"
+    },
+    "1055": {
+      "id": "1055",
+      "customer_id": "C04",
+      "items": [
+        "Sykkellykter, sett"
+      ],
+      "status": "Levert",
+      "total_nok": 399,
+      "delivery_address": "Sykkelstien 4, 0000 Oslo",
+      "payment_method": "Kort"
+    },
+    "1058": {
+      "id": "1058",
+      "customer_id": "C05",
+      "items": [
+        "Piggdekk, 2 stk"
+      ],
+      "status": "Under behandling",
+      "total_nok": 1480,
+      "delivery_address": "Dekkbakken 18, 0000 Oslo",
+      "payment_method": "Kort"
+    },
+    "1061": {
+      "id": "1061",
+      "customer_id": "C06",
+      "items": [
+        "Bremseklosser, 2 par"
+      ],
+      "status": "Sendt",
+      "total_nok": 320,
+      "delivery_address": "Bremsegata 22, 0000 Oslo",
+      "payment_method": "Faktura"
+    },
+    "1064": {
+      "id": "1064",
+      "customer_id": "C07",
+      "items": [
+        "Service sykkel, stor"
+      ],
+      "status": "Betalt",
+      "total_nok": 1190,
+      "delivery_address": "Girveien 3, 0000 Oslo",
+      "payment_method": "Kort"
+    },
+    "1067": {
+      "id": "1067",
+      "customer_id": "C08",
+      "items": [
+        "Barnesykkel 20 tommer"
+      ],
+      "status": "Levert",
+      "total_nok": 4990,
+      "delivery_address": "Eikebakken 9, 0000 Oslo",
+      "payment_method": "Kort"
+    },
+    "1070": {
+      "id": "1070",
+      "customer_id": "C09",
+      "items": [
+        "Sykkelveske"
+      ],
+      "status": "Levert",
+      "total_nok": 799,
+      "delivery_address": "Hjulveien 45, 0000 Oslo",
+      "payment_method": "Faktura"
+    },
+    "1073": {
+      "id": "1073",
+      "customer_id": "C10",
+      "items": [
+        "Sykkellås"
+      ],
+      "status": "Sendt",
+      "total_nok": 559,
+      "delivery_address": "Lykteveien 16, 0000 Oslo",
+      "payment_method": "Kort"
+    },
+    "1076": {
+      "id": "1076",
+      "customer_id": "C11",
+      "items": [
+        "Sadel"
+      ],
+      "status": "Under behandling",
+      "total_nok": 690,
+      "delivery_address": "Sadelgata 28, 0000 Oslo",
+      "payment_method": "Kort"
+    },
+    "1079": {
+      "id": "1079",
+      "customer_id": "C12",
+      "items": [
+        "Pumpe og lappesett"
+      ],
+      "status": "Levert",
+      "total_nok": 249,
+      "delivery_address": "Vimpelveien 2, 0000 Oslo",
+      "payment_method": "Faktura"
+    }
+  },
+  "policies": {
+    "angrerett": "Angrerett: Du har 14 dager angrerett ved kjøp på nett, regnet fra dagen etter at du mottok varen. Meld fra til oss skriftlig innen fristen og send varen tilbake innen 14 dager etter at du har meldt fra. Du betaler vanligvis selv returfrakten. Ved kjøp i butikken er det ingen angrerett, men vi bytter gjerne varer som er ubrukte, så langt vi kan.",
+    "reklamasjon": "Reklamasjon: Reklamasjonsfristen er minst 2 år, og 5 år for varer som er ment å vare vesentlig lenger, for eksempel en el-sykkel eller en sykkelramme. Du må melde fra til oss innen rimelig tid etter at du oppdaget feilen. Vi retter feilen, leverer ny vare eller gir avslag i prisen etter dine rettigheter.",
+    "apningstider": "Åpningstider: mandag til fredag 10:00-17:00, lørdag 10:00-15:00, stengt søndag og helligdager.",
+    "servicepriser": "Servicepriser: Liten service 790 kr, stor service 1 190 kr, service på el-sykkel 1 290 kr. Punktering 190 kr. Delene kommer i tillegg.",
+    "personvern": "Personvern: Vi gir bare ut opplysninger om en bestilling til kunden som eier den, etter at kunden er identifisert."
+  },
+  "sent_emails": []
+}
