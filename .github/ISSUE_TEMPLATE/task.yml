@@ -1,0 +1,30 @@
+name: Task
+description: A piece of work for the roadmap.
+labels: [needs-triage]
+body:
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: What problem does this solve, or what does it unblock?
+    validations:
+      required: true
+  - type: textarea
+    id: done-when
+    attributes:
+      label: Done when
+      description: The check that passes when this is done.
+    validations:
+      required: true
+  - type: input
+    id: depends-on
+    attributes:
+      label: Depends on
+      description: Issue numbers, for example "#2, #7". Write "none" if there are none.
+    validations:
+      required: true
+  - type: textarea
+    id: not-in-scope
+    attributes:
+      label: Not in this issue
+      description: Work that belongs in another issue.

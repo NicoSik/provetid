@@ -1,0 +1,26 @@
+name: issue-link
+
+# Fails a pull request whose description links no issue (REQ-12.1, REQ-12.2).
+# The description is read from an environment variable as data. It never becomes part of the
+# script text (REQ-12.3).
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  issue-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Closes, Fixes or Resolves #n
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if printf '%s' "$PR_BODY" | grep -Eiq '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+'; then
+            echo "Issue link found."
+          else
+            echo "::error::The PR description must link an issue, for example 'Closes #12'."
+            exit 1
+          fi

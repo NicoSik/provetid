@@ -1,0 +1,34 @@
+name: Bug
+description: Something does not work as it should.
+labels: [needs-triage]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps
+      description: The commands or clicks that show the bug.
+    validations:
+      required: true
+  - type: dropdown
+    id: how-bad
+    attributes:
+      label: How bad
+      options:
+        - The demo cannot happen (P0)
+        - The demo is weak or unsafe (P1)
+        - It makes the final worse (P2)
+        - Small (P3)
+    validations:
+      required: true
