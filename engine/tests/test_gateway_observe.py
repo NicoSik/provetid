@@ -157,13 +157,23 @@ def test_out_of_range_values_are_blocked(
     assert shop == before
 
 
-def test_hide_path_masks_address_and_phone_in_result(gateway: Gateway, shop: ShopState) -> None:
+def test_observe_shows_the_full_record_even_with_r2(gateway: Gateway, shop: ShopState) -> None:
+    """#105: hiding address and phone is a lock, so it applies only in enforce (D17, REQ-3.4)."""
+    assert gateway.limits.hide_address_phone  # R2 is on, so only the mode decides
     d = gateway.apply(Action(tool="lookup_customer", args={"query": "000 00 112"}), shop)
     assert isinstance(d.result, dict)
-    assert d.result["address"] == "Kjedeveien **"
-    assert d.result["phone"] == "*** ** 112"
-    assert "postal_code" not in d.result
-    assert "city" not in d.result
+    assert d.result["address"] == "Kjedeveien 12"
+    assert d.result["phone"] == "000 00 112"
+    assert d.result["postal_code"] == "0000"
+
+
+def test_observe_lookup_order_shows_the_full_delivery_address(
+    gateway: Gateway, shop: ShopState
+) -> None:
+    assert gateway.limits.hide_address_phone
+    d = gateway.apply(Action(tool="lookup_order", args={"order_id": "1043"}), shop)
+    assert isinstance(d.result, dict)
+    assert "Kjedeveien 12" in str(d.result["delivery_address"])
 
 
 def test_a_call_that_changed_nothing_is_not_flagged(gateway: Gateway, shop: ShopState) -> None:

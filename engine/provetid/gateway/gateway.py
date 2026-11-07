@@ -170,7 +170,9 @@ class Gateway:
                     result=f"Blokkert av eierens grense: {limit_text}.",
                     result_summary=f"Blokkert: {limit_text}",
                 )
-        result, summary = run_tool(action, shop, self.limits.hide_address_phone)
+        # Hiding address and phone is a lock, so only enforce applies it (D17, REQ-3.4, #105).
+        hide = self.mode == "enforce" and self.limits.hide_address_phone
+        result, summary = run_tool(action, shop, hide)
         # A tool answers with plain text when it changed nothing, such as for an unknown order.
         rule_id = None if isinstance(result, str) else self._broken_rule(action)
         return GatewayDecision(
