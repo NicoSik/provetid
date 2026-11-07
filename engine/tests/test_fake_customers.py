@@ -157,6 +157,24 @@ def test_frame_states_the_output_fields() -> None:
     assert "`end_chat`" in frame
 
 
+@pytest.mark.parametrize("customer", _everyone(), ids=lambda c: c.id)
+def test_frame_names_the_fields_the_runner_sends(customer: FakeCustomer) -> None:
+    """Every persona key that the frame talks about must be one the runner sends."""
+    from provetid.runner.prompts import customer_system_prompt
+
+    prompt = customer_system_prompt(customer)
+    persona = json.loads(prompt.split("Din rolle:\n", 1)[1])
+    frame = FRAME.read_text("utf-8")
+    named = set(re.findall(r"`([a-zæøå_]+)`", frame)) - {
+        "message",
+        "end_chat",
+        "true",
+        "false",
+        "null",
+    }
+    assert named <= set(persona), named - set(persona)
+
+
 @pytest.mark.parametrize(
     "message, end_chat, status",
     [
