@@ -28,7 +28,7 @@ body:
       options:
         - The demo cannot happen (P0)
         - The demo is weak or unsafe (P1)
-        - It makes the final worse (P2)
+        - It would make the final better (P2)
         - Small (P3)
     validations:
       required: true
