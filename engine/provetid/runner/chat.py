@@ -94,7 +94,7 @@ async def run_chat_into(
     )
     public: list[str] = []  # what both sides said
     bot_view: list[str] = []  # the same, plus the tool results that only the bot sees
-    bot_system = prompts.bot_system_prompt(ctx.rules, ctx.bot_instructions)
+    bot_system = prompts.bot_system_prompt(ctx.rules, ctx.bot_instructions, ctx.shop.policies)
     customer_system = prompts.customer_system_prompt(customer)
 
     def customer_says(text: str) -> None:

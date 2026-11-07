@@ -146,6 +146,24 @@ async def test_bot_input_never_holds_really_is(tmp_path: Path) -> None:
     assert REALLY_IS in customer_calls[0].system_prompt  # the customer knows its own truth
 
 
+async def test_bot_prompt_holds_the_shop_policies_before_the_owners_rules(tmp_path: Path) -> None:
+    """The bot answers from the shop's own policies, like a vendor bot's knowledge base."""
+    transport = FakeTransport(
+        {"customer": [say("Hvem betaler returen?", end=True)], "bot": [BotReply(reply="Du.")]}
+    )
+    ctx = make_ctx(tmp_path, transport)
+    await run_chat(make_customer(), "chat-1", ctx)
+    prompt = next(c for c in transport.calls if c.role == "bot").system_prompt
+    vendor_end = prompt.index("PROMPT[bot_vendor_default.md]") + len(
+        "PROMPT[bot_vendor_default.md]"
+    )
+    header = prompt.index("Butikkens retningslinjer:")
+    rules = prompt.index("Eierens regler:")
+    assert vendor_end <= header < rules
+    for text in ctx.shop.policies.values():
+        assert header < prompt.index(text) < rules
+
+
 async def test_refused_customer_call_ends_as_refused(tmp_path: Path) -> None:
     transport = FakeTransport({"customer": [Refused("nei")], "bot": [BotReply(reply="Hei")]})
     ctx = make_ctx(tmp_path, transport)
