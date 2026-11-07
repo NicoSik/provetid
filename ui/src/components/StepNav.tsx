@@ -1,5 +1,6 @@
 import type { RegisteredScreen } from "../screens/registry";
 import { ReplayBadge } from "./ReplayBadge";
+import { ScamCheck } from "./ScamDialog";
 import { SceneToggle } from "./SceneToggle";
 
 const STEP_NAMES = [
@@ -52,8 +53,8 @@ export function StepNav({ screens, currentPath }: Props) {
           })}
         </ol>
       </nav>
-      {/* Issue #19 puts «Send inn svindel» here. */}
       <div className="flex items-center gap-2">
+        <ScamCheck />
         <ReplayBadge />
         <SceneToggle />
       </div>
