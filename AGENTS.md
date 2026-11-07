@@ -108,8 +108,13 @@ A pull request that changes a file in `engine/prompts/` must paste the golden-se
   working» in your pull-request description.
 - Take the highest-priority issue that is not blocked. Assign yourself before you start. Have one
   issue in progress at a time.
-- New issues get the `needs-triage` label. The team sets the priority at the next stand-up. A P0
-  bug is triaged at once.
+- Give every new issue one priority label, `P0` to `P3`, when you create it. This applies to
+  humans and coding agents alike. Use the definitions below.
+  With `gh`: `gh issue create --title "…" --body "…" --label P2`.
+  An issue with no priority cannot be picked.
+- Add `needs-triage` only when you are unsure of the priority. The issue forms add it for you.
+  Remove it when you have set a priority. The team checks the rest at the next stand-up. A P0
+  bug is checked at once.
 - Priorities: `P0` the demo cannot happen without it. `P1` the demo is weak or unsafe. `P2` it
   makes the final better. `P3` only if time is left.
 - Done means: the test came first and passes, every commit had an Opus review, `make check` is
