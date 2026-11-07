@@ -183,15 +183,14 @@ export function subscribeToReplay(listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
+/** A pause before playback starts is kept: the playback then starts paused (see `startShared`). */
 export function pauseReplay(): void {
-  if (!shared) return;
-  shared.controls.pause();
+  shared?.controls.pause();
   setState({ paused: true });
 }
 
 export function resumeReplay(): void {
-  if (!shared) return;
-  shared.controls.resume();
+  shared?.controls.resume();
   setState({ paused: false });
 }
 
@@ -206,7 +205,7 @@ export function setReplaySpeed(speed: ReplaySpeed): void {
 export function stopSharedReplay(): void {
   shared?.controls.stop();
   shared = null;
-  state = START_STATE;
+  setState(START_STATE); // tell the badge, so it never shows a pause that is gone
 }
 
 function startShared(name: string): SharedReplay {
@@ -230,6 +229,7 @@ function startShared(name: string): SharedReplay {
       () => report("abandoned"),
     ),
   };
+  if (state.paused) created.controls.pause(); // the driver paused before anything played
   return created;
 }
 
@@ -244,7 +244,9 @@ export function joinReplay(
     return () => {};
   }
   if (shared?.name !== name) {
-    stopSharedReplay();
+    // Only a playback that exists is stopped: stopping resets the state, and with it a pause
+    // that the driver made before anything played.
+    if (shared) stopSharedReplay();
     shared = startShared(name);
   }
   const current = shared;

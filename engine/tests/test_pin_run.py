@@ -4,7 +4,7 @@ import pytest
 
 from provetid.eventlog import EventLog
 from provetid.events import MessageData, RunFinishedData
-from scripts.pin_run import PinError, main, pin
+from scripts.pin_run import PinError, main, pin, pin_all
 
 
 def make_run(
@@ -95,3 +95,109 @@ def test_the_command_exits_with_1_and_a_message_on_an_error(
 def test_the_command_needs_two_arguments(capsys: pytest.CaptureFixture[str]) -> None:
     assert main([]) == 2
     assert "pin_run" in capsys.readouterr().err
+
+
+def test_a_failed_copy_leaves_the_earlier_pin_unchanged(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    make_run(tmp_path / "runs")
+    replays = tmp_path / "replays"
+    good = pin("r1", "after", tmp_path / "runs", replays)
+    before = good.read_bytes()
+
+    def half_copy(source, target, *args, **kwargs):
+        Path(target).write_bytes(Path(source).read_bytes()[:10])  # then the disk is full
+        raise OSError("No space left on device")
+
+    monkeypatch.setattr("scripts.pin_run.shutil.copyfile", half_copy)
+    with pytest.raises(PinError):
+        pin("r1", "after", tmp_path / "runs", replays)
+    assert good.read_bytes() == before
+    assert sorted(p.name for p in replays.iterdir()) == ["after.jsonl"]  # no temp file left
+
+
+def test_a_pin_also_updates_a_built_ui(tmp_path: Path) -> None:
+    source = make_run(tmp_path / "runs")
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    (dist / "replays").mkdir()
+    (dist / "replays" / "before.jsonl").write_text("gammel", encoding="utf-8")
+
+    result = pin_all("r1", "before", tmp_path / "runs", tmp_path / "replays", dist)
+
+    assert result.dist == dist / "replays" / "before.jsonl"
+    assert result.dist_error is None
+    assert (dist / "replays" / "before.jsonl").read_bytes() == source.read_bytes()
+    assert (tmp_path / "replays" / "before.jsonl").read_bytes() == source.read_bytes()
+
+
+def test_without_a_built_ui_only_the_public_replay_is_written(tmp_path: Path) -> None:
+    make_run(tmp_path / "runs")
+    result = pin_all("r1", "scam", tmp_path / "runs", tmp_path / "replays", tmp_path / "dist")
+    assert result.public == tmp_path / "replays" / "scam.jsonl"
+    assert result.dist is None and result.dist_error is None
+    assert not (tmp_path / "dist").exists()
+
+
+def test_the_command_says_when_the_built_ui_was_updated(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    make_run(tmp_path / "runs")
+    (tmp_path / "dist").mkdir()
+    monkeypatch.setattr("scripts.pin_run.REPLAYS_DIR", tmp_path / "replays")
+    monkeypatch.setattr("scripts.pin_run.DIST_DIR", tmp_path / "dist")
+    monkeypatch.setenv("PROVETID_DATA_DIR", str(tmp_path))
+    assert main(["r1", "after"]) == 0
+    out = capsys.readouterr().out
+    assert str(tmp_path / "replays" / "after.jsonl") in out
+    assert f"Also updated the built UI: {tmp_path / 'dist' / 'replays' / 'after.jsonl'}" in out
+
+
+def test_the_command_says_when_there_is_no_built_ui(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    make_run(tmp_path / "runs")
+    monkeypatch.setattr("scripts.pin_run.REPLAYS_DIR", tmp_path / "replays")
+    monkeypatch.setattr("scripts.pin_run.DIST_DIR", tmp_path / "dist")
+    monkeypatch.setenv("PROVETID_DATA_DIR", str(tmp_path))
+    assert main(["r1", "after"]) == 0
+    assert "No built UI yet" in capsys.readouterr().out
+
+
+def test_a_failed_copy_to_the_built_ui_keeps_the_public_pin_and_says_so(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    source = make_run(tmp_path / "runs")
+    (tmp_path / "dist").mkdir()
+    (tmp_path / "dist" / "replays").write_text("en fil, ikke en mappe", encoding="utf-8")
+    monkeypatch.setattr("scripts.pin_run.REPLAYS_DIR", tmp_path / "replays")
+    monkeypatch.setattr("scripts.pin_run.DIST_DIR", tmp_path / "dist")
+    monkeypatch.setenv("PROVETID_DATA_DIR", str(tmp_path))
+
+    assert main(["r1", "after"]) == 0
+    out = capsys.readouterr().out
+    assert (tmp_path / "replays" / "after.jsonl").read_bytes() == source.read_bytes()
+    assert "the built UI still has the old replay" in out
+    assert "make demo" in out
+
+
+def test_an_interrupted_pin_leaves_no_temp_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    make_run(tmp_path / "runs")
+    replays = tmp_path / "replays"
+
+    def interrupted(source, target, *args, **kwargs):
+        Path(target).write_bytes(b"halv")
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr("scripts.pin_run.shutil.copyfile", interrupted)
+    with pytest.raises(KeyboardInterrupt):
+        pin("r1", "before", tmp_path / "runs", replays)
+    assert list(replays.iterdir()) == []
+
+
+def test_a_pinned_replay_can_be_read_by_everyone(tmp_path: Path) -> None:
+    make_run(tmp_path / "runs")
+    target = pin("r1", "before", tmp_path / "runs", tmp_path / "replays")
+    assert target.stat().st_mode & 0o777 == 0o644
