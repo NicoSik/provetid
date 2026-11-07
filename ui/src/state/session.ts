@@ -1,5 +1,6 @@
-// Which runs the owner is looking at. It survives a page reload in the same tab, so a reload on
-// stage rejoins the run: the stream sends all events again and the reducer rebuilds the state.
+// Which runs the owner is looking at, and the plan the interview runs with. It survives a page
+// reload in the same tab, so a reload on stage rejoins the run: the stream sends all events again
+// and the reducer rebuilds the state.
 
 import { useSyncExternalStore } from "react";
 
@@ -7,10 +8,17 @@ export type Session = {
   currentRunId: string | null;
   beforeRunId: string | null;
   afterRunId: string | null;
+  planId: string;
 };
 
+export const DEMO_PLAN_ID = "demo";
 const STORAGE_KEY = "provetid.session";
-const EMPTY: Session = { currentRunId: null, beforeRunId: null, afterRunId: null };
+const EMPTY: Session = {
+  currentRunId: null,
+  beforeRunId: null,
+  afterRunId: null,
+  planId: DEMO_PLAN_ID,
+};
 
 function load(): Session {
   try {

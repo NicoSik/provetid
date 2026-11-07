@@ -85,6 +85,26 @@ async def test_with_no_saved_file_and_no_demo_plan_the_get_returns_no_limits(
     assert got.json() == Limits().model_dump()
 
 
+async def test_the_default_limits_come_from_the_rules_of_the_plan_asked_for(
+    settings: Settings,
+) -> None:
+    save_plan(TestPlan(id="egen", job_ad="y", rules=[R2], customers=[]), data_dir=settings.data_dir)
+    async with client_for(settings) as client:
+        egen = await client.get("/api/limits", params={"plan_id": "egen"})
+        demo = await client.get("/api/limits", params={"plan_id": "demo"})
+    assert egen.status_code == 200
+    assert egen.json() == limits_from_rules([R2]).model_dump()
+    assert egen.json() != demo.json()
+    assert demo.json() == limits_from_rules(RULES).model_dump()
+
+
+@pytest.mark.parametrize("plan_id", ["finnes-ikke", "..", "a%2Fb"])
+async def test_an_unknown_or_unsafe_plan_id_returns_404(settings: Settings, plan_id: str) -> None:
+    async with client_for(settings) as client:
+        got = await client.get("/api/limits", params={"plan_id": plan_id})
+    assert got.status_code == 404
+
+
 @pytest.mark.parametrize(
     "bad",
     [

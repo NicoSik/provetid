@@ -20,7 +20,19 @@ afterEach(() => {
 describe("the session store", () => {
   it("starts empty", async () => {
     const { getSession } = await loadStore();
-    expect(getSession()).toEqual({ currentRunId: null, beforeRunId: null, afterRunId: null });
+    expect(getSession()).toEqual({
+      currentRunId: null,
+      beforeRunId: null,
+      afterRunId: null,
+      planId: "demo",
+    });
+  });
+
+  it("keeps the active plan through a page reload", async () => {
+    const first = await loadStore();
+    first.updateSession({ planId: "egen" });
+    const second = await loadStore();
+    expect(second.getSession().planId).toBe("egen");
   });
 
   it("updates the components that use it", () => {
