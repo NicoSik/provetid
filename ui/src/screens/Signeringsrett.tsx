@@ -7,7 +7,6 @@ import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/signeringsrett", step: 4, title: "Signeringsrett" };
 
-const DEMO_PLAN_ID = "demo";
 const MAX_DISCOUNT = 100;
 const SUGGESTED_SENTENCES = [
   "Send reklamasjoner videre til eieren.",
@@ -142,7 +141,7 @@ function LimitsForm({ saved }: { saved: Limits }) {
     setFailed(false);
     try {
       const before = await beforeRun();
-      const { run_id } = await startRun({ plan_id: DEMO_PLAN_ID, mode: "enforce", limits });
+      const { run_id } = await startRun({ plan_id: getSession().planId, mode: "enforce", limits });
       // Only a run that started saves its limits, so a failed click freezes nothing. The run has
       // the limits already, so a failed save must not stop the demo.
       await putLimits(limits).catch(() => {});
@@ -244,7 +243,7 @@ export default function Signeringsrett() {
   useEffect(() => {
     if (replay) return;
     let cancelled = false;
-    getLimits().then(
+    getLimits(getSession().planId).then(
       (limits) => {
         if (!cancelled) setSaved(limits);
       },

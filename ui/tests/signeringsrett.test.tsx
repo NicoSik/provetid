@@ -157,7 +157,12 @@ describe("«Kjør intervjuet igjen»", () => {
     const run = await openScreen();
     fireEvent.click(run);
     await waitFor(() => expect(window.location.hash).toBe("#/intervju"));
-    expect(getSession()).toEqual({ currentRunId: "r2", beforeRunId: "r1", afterRunId: "r2" });
+    expect(getSession()).toEqual({
+      currentRunId: "r2",
+      beforeRunId: "r1",
+      afterRunId: "r2",
+      planId: "demo",
+    });
   });
 
   it("never makes a run with limits the before run", async () => {
@@ -166,7 +171,12 @@ describe("«Kjør intervjuet igjen»", () => {
     const run = await openScreen();
     fireEvent.click(run);
     await waitFor(() => expect(window.location.hash).toBe("#/intervju"));
-    expect(getSession()).toEqual({ currentRunId: "r2", beforeRunId: null, afterRunId: "r2" });
+    expect(getSession()).toEqual({
+      currentRunId: "r2",
+      beforeRunId: null,
+      afterRunId: "r2",
+      planId: "demo",
+    });
   });
 
   it("leaves the before run empty when it cannot tell the mode, and still starts", async () => {

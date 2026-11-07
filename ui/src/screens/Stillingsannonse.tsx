@@ -2,12 +2,10 @@ import { useEffect, useState } from "react";
 import { buildPlan, getPlan, isLock, putPlan, type TestPlan } from "../api/plans";
 import { startRun } from "../api/runs";
 import { replayName } from "../events/replay";
-import { updateSession } from "../state/session";
+import { DEMO_PLAN_ID, getSession, updateSession } from "../state/session";
 import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/stillingsannonse", step: 1, title: "Stillingsannonse" };
-
-const DEMO_PLAN_ID = "demo";
 
 function countKinds(plan: TestPlan): string {
   const count = (kind: string) => plan.customers.filter((c) => c.kind === kind).length;
@@ -61,6 +59,7 @@ function PlanView({ initial }: { initial: TestPlan }) {
     try {
       const built = await buildPlan(ad);
       setPlan(built);
+      updateSession({ planId: built.id, currentRunId: null, beforeRunId: null, afterRunId: null });
       setAd(built.job_ad);
       // REQ-1.4: new rules are shown for approval before the interview can start.
       setApproved(false);
@@ -77,7 +76,12 @@ function PlanView({ initial }: { initial: TestPlan }) {
     setFailed(false);
     try {
       const { run_id } = await startRun({ plan_id: plan.id, mode: "observe" });
-      updateSession({ currentRunId: run_id, beforeRunId: null, afterRunId: null });
+      updateSession({
+        planId: plan.id,
+        currentRunId: run_id,
+        beforeRunId: null,
+        afterRunId: null,
+      });
       window.location.hash = "#/intervju";
     } catch {
       setFailed(true);
@@ -203,9 +207,26 @@ export default function Stillingsannonse() {
   useEffect(() => {
     if (replay) return;
     let cancelled = false;
-    getPlan(DEMO_PLAN_ID).then(
+    // The plan the interview ran with. Only a plan that is gone (404) gives way to the demo plan.
+    const active = getSession().planId;
+    const load = getPlan(active).catch((error: unknown) => {
+      const gone = error instanceof Error && error.message.includes("feil 404");
+      if (active === DEMO_PLAN_ID || !gone) throw error;
+      return getPlan(DEMO_PLAN_ID);
+    });
+    load.then(
       (loaded) => {
-        if (!cancelled) setPlan(loaded);
+        if (cancelled) return;
+        // Runs of another plan must not stay as the «before» of this one.
+        if (loaded.id !== active) {
+          updateSession({
+            planId: loaded.id,
+            currentRunId: null,
+            beforeRunId: null,
+            afterRunId: null,
+          });
+        }
+        setPlan(loaded);
       },
       () => {
         if (!cancelled) setFailed(true);

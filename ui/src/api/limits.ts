@@ -11,8 +11,10 @@ export type Limits = {
   extra_instructions: string[];
 };
 
-export async function getLimits(): Promise<Limits> {
-  return readJson(await fetch("/api/limits"));
+/** The saved limits, or else the defaults of the plan. The engine's default plan is the demo. */
+export async function getLimits(planId = "demo"): Promise<Limits> {
+  const query = planId === "demo" ? "" : `?plan_id=${encodeURIComponent(planId)}`;
+  return readJson(await fetch(`/api/limits${query}`));
 }
 
 export async function putLimits(limits: Limits): Promise<Limits> {
