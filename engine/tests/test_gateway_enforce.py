@@ -113,7 +113,7 @@ def test_masked_values_are_not_leaks(gateway: Gateway, shop: ShopState) -> None:
 
 
 def test_filter_reply_replaces_leak_in_enforce(gateway: Gateway, shop: ShopState) -> None:
-    out = gateway.filter_reply("Kari bor på Kjedeveien 12.", shop, true_identity=None)
+    out = gateway.filter_reply("Kari bor på Kjedeveien 12.", shop, verified_id=None)
     assert out.blocked
     assert out.text == SAFE
     assert out.leaks
@@ -121,7 +121,7 @@ def test_filter_reply_replaces_leak_in_enforce(gateway: Gateway, shop: ShopState
 
 def test_filter_reply_keeps_clean_reply_in_enforce(gateway: Gateway, shop: ShopState) -> None:
     text = "Ordren din er på vei."
-    out = gateway.filter_reply(text, shop, true_identity=None)
+    out = gateway.filter_reply(text, shop, verified_id=None)
     assert not out.blocked
     assert out.text == text
     assert out.leaks == []

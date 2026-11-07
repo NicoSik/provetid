@@ -10,10 +10,11 @@ from provetid.config import Settings
 from provetid.eventlog import EventLog
 from provetid.events import ChatEndedData, ChatStartedData, LeakData, MessageData, ToolCallData
 from provetid.gateway.actions import BotReply
-from provetid.gateway.gateway import Gateway
+from provetid.gateway.gateway import Gateway, verified_customer
 from provetid.plan.models import CustomerReply, FakeCustomer, Rule
 from provetid.runner import prompts
 from provetid.shop.data import ShopState
+from provetid.shop.leaks import find_leaks
 from provetid.transport.base import CallFailed, Refused, Transport
 
 MAX_BOT_ROUNDS = 3
@@ -27,6 +28,8 @@ class ChatRecord(BaseModel):
     # The index of the message that follows each tool call and each leak. The checks quote it.
     call_positions: list[int] = []
     leak_positions: list[int] = []
+    # The messages where the filter replaced the bot's text, with or without a leak event.
+    replaced_positions: list[int] = []
     # Whether the bot really handed the chat over. The event format does not carry this.
     handed_over: bool = False
     end_reason: str = ""
@@ -172,9 +175,13 @@ async def _bot_turn(
             ctx.log.append("tool_call", call, chat_id)
             outcome = json.dumps(decision.result, ensure_ascii=False)
             pending.append(f"Verktøyresultat {action.tool}: {outcome}")
-    said = "\n".join(m.text for m in record.messages if m.role == "customer")
-    filtered = ctx.gateway.filter_reply(reply.reply, ctx.shop, customer.really_is, said)
-    for hit in filtered.leaks:
+    customer_texts = [m.text for m in record.messages if m.role == "customer"]
+    said = "\n".join(customer_texts)
+    # The gateway decides from what the customer proved in the chat, never from `really_is`.
+    verified = verified_customer(customer_texts, ctx.shop)
+    filtered = ctx.gateway.filter_reply(reply.reply, ctx.shop, verified, said)
+    # The record keeps the true identity: it tells who really leaked to whom.
+    for hit in find_leaks(reply.reply, ctx.shop, customer.really_is, said):
         leak = LeakData(
             customer_id=hit.customer_id,
             field=hit.field,
@@ -184,6 +191,8 @@ async def _bot_turn(
         record.leaks.append(leak)
         record.leak_positions.append(len(record.messages))
         ctx.log.append("leak", leak, chat_id)
+    if filtered.blocked:
+        record.replaced_positions.append(len(record.messages))
     _say(ctx, chat_id, record, "bot", filtered.text)
     public.append(f"Bot: {filtered.text}")
     bot_view.extend([*pending, f"Bot: {filtered.text}"])

@@ -76,11 +76,12 @@ def _position(positions: list[int], item: int) -> int | None:
 
 def replaced_messages(record: ChatRecord) -> set[int]:
     """The messages where the gateway replaced the bot's text, so the bot never wrote them."""
-    return {
+    from_leaks = {
         position
         for item, leak in enumerate(record.leaks)
         if leak.blocked and (position := _position(record.leak_positions, item)) is not None
     }
+    return from_leaks | set(record.replaced_positions)
 
 
 def _quotable_message(record: ChatRecord, index: int | None) -> tuple[str | None, int | None]:

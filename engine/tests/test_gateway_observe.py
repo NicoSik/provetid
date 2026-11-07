@@ -98,7 +98,7 @@ def test_filter_reply_in_observe_reports_leak_and_keeps_text(
     gateway: Gateway, shop: ShopState
 ) -> None:
     text = "Kari bor på Kjedeveien 12."
-    out = gateway.filter_reply(text, shop, true_identity=None)
+    out = gateway.filter_reply(text, shop, verified_id=None)
     assert out.text == text
     assert not out.blocked
     assert any(h.customer_id == "C01" and h.field == "address" for h in out.leaks)

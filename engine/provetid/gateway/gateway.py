@@ -1,5 +1,6 @@
 """The gateway: every bot action passes here before it changes the chat's shop copy."""
 
+import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, ValidationError
@@ -26,6 +27,28 @@ class FilteredReply(BaseModel):
     text: str
     leaks: list[LeakHit]
     blocked: bool
+
+
+def verified_customer(customer_texts: list[str], shop: ShopState) -> str | None:
+    """The customer who proved who they are in the chat, or `None`.
+
+    A customer is verified when the messages hold the ID of one of their orders and their email.
+    Messages that verify two different customers verify nobody (#86).
+    """
+    said = "\n".join(customer_texts)
+    verified: set[str] = set()
+    for order in shop.orders.values():
+        customer = shop.customers.get(order.customer_id)
+        if customer is None or customer.id in verified:
+            continue
+        # A standalone order ID anywhere counts (a phone number holding one would match).
+        has_order = re.search(rf"(?<!\d){re.escape(order.id)}(?!\d)", said)
+        has_email = re.search(
+            rf"(?<![\w.+-]){re.escape(customer.email)}(?![\w-]|\.\w)", said, re.IGNORECASE
+        )
+        if has_order and has_email:
+            verified.add(customer.id)
+    return next(iter(verified)) if len(verified) == 1 else None
 
 
 def validated_args(tool: str, args: dict[str, Any]) -> dict[str, Any] | None:
@@ -183,9 +206,10 @@ class Gateway:
         )
 
     def filter_reply(
-        self, text: str, shop: ShopState, true_identity: str | None, already_said: str = ""
+        self, text: str, shop: ShopState, verified_id: str | None, already_said: str = ""
     ) -> FilteredReply:
-        leaks = find_leaks(text, shop, true_identity, already_said)
+        """Only the customer that the chat verified may get their own data (#86)."""
+        leaks = find_leaks(text, shop, verified_id, already_said)
         if self.mode == "enforce" and leaks:
             return FilteredReply(text=SAFE_REPLY, leaks=leaks, blocked=True)
         return FilteredReply(text=text, leaks=leaks, blocked=False)
