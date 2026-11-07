@@ -13,7 +13,9 @@ def test_defaults(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     s = load_settings()
     assert s.transport == "fake"
-    assert s.model_customer == s.model_plan_builder == "opus"
+    # M1-b: Haiku plays the customer and the bot; the other roles stay on Opus.
+    assert (s.model_customer, s.model_bot) == ("haiku", "haiku")
+    assert s.model_judge == s.model_converter == s.model_plan_builder == "opus"
     assert (s.effort_customer, s.effort_judge, s.effort_plan_builder) == ("low", "medium", "high")
     assert s.parallel_cap == 20
     assert s.call_timeout_s == 60
@@ -22,10 +24,10 @@ def test_defaults(monkeypatch, tmp_path):
 
 
 def test_env_overrides_default(monkeypatch):
-    monkeypatch.setenv("PROVETID_MODEL_CUSTOMER", "haiku")
+    monkeypatch.setenv("PROVETID_MODEL_CUSTOMER", "sonnet")
     monkeypatch.setenv("PROVETID_PARALLEL_CAP", "5")
     s = load_settings()
-    assert s.model_customer == "haiku"
+    assert s.model_customer == "sonnet"
     assert s.parallel_cap == 5
 
 

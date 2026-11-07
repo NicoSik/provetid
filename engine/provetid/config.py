@@ -12,8 +12,8 @@ DEFAULT_DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 class Settings(BaseModel):
     transport: Literal["fake", "claude"] = "fake"
-    model_customer: str = "opus"
-    model_bot: str = "opus"
+    model_customer: str = "haiku"  # M1-b
+    model_bot: str = "haiku"  # M1-b
     model_judge: str = "opus"
     model_converter: str = "opus"
     model_plan_builder: str = "opus"
