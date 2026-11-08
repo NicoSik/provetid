@@ -45,8 +45,10 @@ make dev     # engine with the fake transport on :8000, UI on http://localhost:5
 ```
 
 `make dev` uses the **fake transport**: no model is called, and the chats follow a fixed script.
-It shows how the screens work, but the fake judge grades nothing, so every chat ends «Ikke
-testet». Real breaks and quotes show only in live runs and in replays.
+It shows how the screens work, but it proves nothing about a bot. The code checks still grade the
+rules the gateway checks in code, from the scripted actions, so the chats end «Bestått», while the fake judge answers
+nothing, so the judge rules show «Ikke testet». Real breaks and quotes show only in live runs and
+in replays.
 
 `make demo` builds the UI and serves everything from the engine on http://localhost:8000.
 

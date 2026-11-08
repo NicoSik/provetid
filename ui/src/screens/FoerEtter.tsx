@@ -175,7 +175,7 @@ export function CompareView({
           empty={
             afterLoading
               ? "Henter kjøringen …"
-              : `${NO_LIMITED_RUN} Velg «Bruk forslagene» på karakterkortet.`
+              : `${NO_LIMITED_RUN} Velg «Kjør intervjuet igjen» på Signeringsrett.`
           }
         />
       </div>

@@ -377,7 +377,7 @@ describe("a run that is in the session but has not sent anything yet", () => {
   it("says it is fetching, and does not tell the speaker to redo a step", () => {
     render(<CompareView before={BEFORE()} after={initialState()} afterLoading />);
     expect(column("ETTER").getByText("Henter kjøringen …")).toBeInTheDocument();
-    expect(column("ETTER").queryByText(/Bruk forslagene/)).not.toBeInTheDocument();
+    expect(column("ETTER").queryByText(/Kjør intervjuet igjen/)).not.toBeInTheDocument();
     expect(hireButton()).toHaveAccessibleDescription(/Henter/);
   });
 });
@@ -385,7 +385,11 @@ describe("a run that is in the session but has not sent anything yet", () => {
 describe("a run that is missing from the session", () => {
   it("says how to get the second run", () => {
     render(<CompareView before={BEFORE()} after={initialState()} />);
-    expect(column("ETTER").getByText(/Bruk forslagene/)).toBeInTheDocument();
+    // «Bruk forslagene» only exists when something failed; «Kjør intervjuet igjen» always does.
+    expect(
+      column("ETTER").getByText(/«Kjør intervjuet igjen» på Signeringsrett/),
+    ).toBeInTheDocument();
+    expect(column("ETTER").queryByText(/Bruk forslagene/)).not.toBeInTheDocument();
   });
 
   it("says how to get the first run", () => {
