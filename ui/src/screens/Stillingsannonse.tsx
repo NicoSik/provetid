@@ -93,7 +93,7 @@ function PlanView({ initial }: { initial: TestPlan }) {
     <div className="space-y-8">
       <section aria-labelledby="annonse" className="space-y-2">
         <h2 id="annonse" className="text-lg font-semibold text-ink">
-          Stillingsannonsen
+          Annonseteksten
         </h2>
         <textarea
           aria-labelledby="annonse"
@@ -158,7 +158,11 @@ function PlanView({ initial }: { initial: TestPlan }) {
                   disabled={building}
                   className="min-w-0 flex-1 rounded-md border border-line bg-surface px-3 py-1.5 text-ink"
                 />
-                <span className="w-16 shrink-0 rounded-md border border-line px-2 py-0.5 text-center text-xs font-semibold text-ink">
+                <span
+                  className={`w-20 shrink-0 rounded-md border px-2 py-1 text-center text-sm font-semibold ${
+                    lock ? "border-ink bg-ink text-surface" : "border-dashed border-line text-muted"
+                  }`}
+                >
                   {lock ? "Lås" : "Dommer"}
                 </span>
               </li>

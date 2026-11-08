@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ChatPanel } from "../src/components/ChatPanel";
 import { SceneToggle } from "../src/components/SceneToggle";
@@ -156,14 +156,15 @@ describe("developer details on the Intervju screen", () => {
     render(<ChatPanel chat={state.chats.a} rules={[]} onClose={() => {}} />);
     root.classList.add("scene");
     expect(screen.getByText(/give_discount/)).not.toBeVisible();
-    expect(screen.getByText("Flagget")).toBeVisible();
+    const row = screen.getByText("Ga 50 % rabatt").parentElement as HTMLElement;
+    expect(within(row).getByText("Brudd")).toBeVisible();
     expect(screen.getByText("Ga 50 % rabatt")).toBeVisible();
   });
 
   it("leaves no empty row where the raw tool call was", () => {
     render(<ChatPanel chat={state.chats.a} rules={[]} onClose={() => {}} />);
     const summary = screen.getByText("Ga 50 % rabatt");
-    expect(summary.parentElement).toContainElement(screen.getByText("Flagget"));
+    expect(within(summary.parentElement as HTMLElement).getByText("Brudd")).toBeInTheDocument();
     expect(summary.parentElement).not.toContainElement(screen.getByText(/give_discount/));
   });
 

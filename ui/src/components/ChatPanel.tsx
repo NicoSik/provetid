@@ -36,9 +36,9 @@ const LEAK_FIELDS: Record<LeakData["field"], string> = {
 };
 
 const DECISIONS: Record<ToolCallData["decision"], { label: string; style: string }> = {
-  allowed: { label: "Tillatt", style: "text-bestatt" },
-  flagged: { label: "Flagget", style: "text-brudd" },
-  blocked: { label: "Stoppet", style: "text-stoppet" },
+  allowed: { label: "Tillatt", style: "bg-bestatt/15 text-bestatt" },
+  flagged: { label: "Brudd", style: "bg-brudd/15 text-brudd" },
+  blocked: { label: "Stoppet", style: "bg-stoppet/15 text-stoppet" },
 };
 
 function ResultLine({ result, rule }: { result: RuleResult; rule: Rule | undefined }) {
@@ -73,7 +73,11 @@ function ToolCallLine({ call }: { call: ToolCallData }) {
     <li className="rounded-md border border-line px-3 py-2 text-sm">
       <div className="flex items-baseline justify-between gap-3">
         <p className="min-w-0 text-ink/85">{call.result_summary}</p>
-        <span className={`shrink-0 text-xs font-semibold ${decision.style}`}>{decision.label}</span>
+        <span
+          className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${decision.style}`}
+        >
+          {decision.label}
+        </span>
       </div>
       <code data-dev className="mt-1 block break-words text-xs text-muted">
         {call.tool}({JSON.stringify(call.input)})

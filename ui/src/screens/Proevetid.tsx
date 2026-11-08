@@ -84,7 +84,7 @@ export default function Proevetid() {
       {state && (
         <>
           <section aria-label="Status" aria-live="polite" className="space-y-2">
-            <p className="text-sm text-muted">AI-medarbeideren er</p>
+            <p className="text-sm text-muted">AI-en er</p>
             <p
               className={`text-5xl font-bold tracking-tight ${dismissed ? "text-brudd" : "text-bestatt"}`}
             >
@@ -101,7 +101,7 @@ export default function Proevetid() {
             <dl className="flex flex-wrap gap-x-10 gap-y-4">
               <Figure value={state.summary.runs} label="kjøringer" />
               <Figure value={state.summary.chats} label="samtaler sjekket" />
-              <Figure value={state.summary.incidents} label="hendelser stoppet eller flagget" />
+              <Figure value={state.summary.incidents} label="brudd og stoppede forsøk" />
             </dl>
           </section>
 

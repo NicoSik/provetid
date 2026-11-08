@@ -15,6 +15,11 @@
   --color-ikke-testet: #a4abc8;
 }
 
+/* Checkboxes follow the theme, not the browser's own blue. */
+input[type="checkbox"] {
+  accent-color: var(--color-ink);
+}
+
 body {
   background-color: var(--color-surface);
   color: var(--color-ink);
