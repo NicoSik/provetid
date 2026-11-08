@@ -72,3 +72,20 @@ export function ruleRows(state: RunState): {
   }
   return { tested, untested, blocked };
 }
+
+// Mirrors SEVERITY in engine/provetid/verdict/checks.py.
+const BLOCKING_CATEGORIES = new Set(["money", "privacy", "law"]);
+
+/** The high and medium rules no chat tested. They keep a run from «Klar for prøvetid» (#120). */
+export function untestedRules(state: RunState): Rule[] {
+  return ruleRows(state).untested.filter((rule) => BLOCKING_CATEGORIES.has(rule.category));
+}
+
+/** The decision as the owner reads it, also when the engine gave none. */
+export function decisionLabel(state: RunState): string {
+  const decision = decisionFor(state);
+  if (decision) return decision;
+  // An incomplete run says so on its own; only a complete run is «not fully tested».
+  if (state.finished?.incomplete) return "Ingen avgjørelse";
+  return untestedRules(state).length > 0 ? "Ikke ferdig testet" : "Ingen avgjørelse";
+}

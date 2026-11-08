@@ -40,7 +40,7 @@ describe("Prøvetid", () => {
   it("shows the status and the figures from the earlier runs", async () => {
     stubEngine();
     render(<Proevetid />);
-    expect(await screen.findByText("Ansatt")).toBeVisible();
+    expect(await screen.findByText("I drift")).toBeVisible();
     expect(screen.getByText("3")).toBeVisible();
     expect(screen.getByText("40")).toBeVisible();
     expect(screen.getByText("7")).toBeVisible();
@@ -74,7 +74,7 @@ describe("Prøvetid", () => {
     const posted = stubEngine(true);
     render(<Proevetid />);
     fireEvent.click(await screen.findByRole("button", { name: "Ansett igjen" }));
-    await waitFor(() => expect(screen.getByText("Ansatt")).toBeVisible());
+    await waitFor(() => expect(screen.getByText("I drift")).toBeVisible());
     expect(posted).toEqual([{ dismissed: false }]);
   });
 

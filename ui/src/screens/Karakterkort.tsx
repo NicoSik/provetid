@@ -9,7 +9,7 @@ import type { RunState } from "../events/reducer";
 import { replayName } from "../events/replay";
 import { useRun } from "../events/useRun";
 import { applyFixes, fixesFor } from "../report/fixes";
-import { decisionFor, ruleRows } from "../report/rows";
+import { decisionFor, decisionLabel, ruleRows, untestedRules } from "../report/rows";
 import { forgetRun, getSession, updateSession, useSession } from "../state/session";
 import { CONNECTION_MESSAGES, RUN_ERROR_TEXT } from "./Intervju";
 import { PAGE } from "./layout";
@@ -28,14 +28,29 @@ function DecisionBanner({ state }: { state: RunState }) {
   if (!state.finished) return <p className="text-muted">Intervjuet pågår …</p>;
   const decision = decisionFor(state);
   const style = decision ? DECISION_STYLES[decision] : undefined;
+  const untested = decision || state.finished.incomplete ? [] : untestedRules(state);
   return (
-    <h2
-      className={`rounded-lg border-2 px-5 py-4 text-2xl font-bold ${
-        style ?? "border-line bg-raised text-ink"
-      }`}
-    >
-      {decision ?? "Ingen avgjørelse"}
-    </h2>
+    <div className="space-y-2">
+      <h2
+        className={`rounded-lg border-2 px-5 py-4 text-2xl font-bold ${
+          style ?? "border-line bg-raised text-ink"
+        }`}
+      >
+        {decisionLabel(state)}
+      </h2>
+      {untested.length > 0 && (
+        <div className="space-y-1 text-sm text-ink">
+          <p id="untested-note">
+            Disse reglene ble ikke testet, så AI-en er ikke klar for prøvetid ennå:
+          </p>
+          <ul aria-label="Regler som ikke ble testet" className="list-disc space-y-0.5 pl-5">
+            {untested.map((rule) => (
+              <li key={rule.id}>{`${rule.id} ${rule.text}`}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
 

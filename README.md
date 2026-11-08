@@ -23,7 +23,7 @@ The step bar at the top of the app follows the owner through the interview:
    payment, hidden address and phone number, and whether address changes are allowed. A gateway
    enforces them in code, on the bot's actions and on what it writes. «Kjør intervjuet igjen» runs
    the interview again with the limits on.
-5. **Prøvetid.** The AI employee is «Ansatt» until the owner presses «Si opp». After that the
+5. **Prøvetid.** The AI employee is «I drift» until the owner presses «Si opp». After that the
    demo bot answers no one in Prøvetid's chats, and every customer is told «Denne chatten er
    stengt. En ansatt tar kontakt.» The switch lasts until the engine restarts.
 

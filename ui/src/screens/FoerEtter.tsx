@@ -5,7 +5,7 @@ import { abandonRun, initialState, type RunState, reduce } from "../events/reduc
 import { loadReplay, replayName } from "../events/replay";
 import type { ConnectionStatus } from "../events/stream";
 import { useRun } from "../events/useRun";
-import { decisionFor, runCounts } from "../report/rows";
+import { decisionFor, decisionLabel, runCounts, untestedRules } from "../report/rows";
 import { useSession } from "../state/session";
 import { CONNECTION_MESSAGES, RUN_ERROR_TEXT } from "./Intervju";
 import { DECISION_STYLES } from "./Karakterkort";
@@ -40,7 +40,7 @@ function Outcome({ state }: { state: RunState }) {
           style ?? "border-line bg-raised text-ink"
         }`}
       >
-        {decision ?? "Ingen avgjørelse"}
+        {decisionLabel(state)}
       </h3>
       {state.finished.incomplete && (
         <p className="font-semibold text-stoppet">Testen er ufullstendig</p>
@@ -115,6 +115,15 @@ function hireBlock(after: RunState, afterLoading: boolean, differentRules: boole
   if (differentRules) return "De to kjøringene har ikke samme regler.";
   if (!after.finished) return "Kjøringen med grenser pågår.";
   if (after.finished.incomplete) return "Testen med grenser er ufullstendig.";
+  // Untested rules only take «Klar» away (#120), so they only explain a run with no decision.
+  const untested = decisionFor(after) ? [] : untestedRules(after).map((rule) => rule.id);
+  if (untested.length > 0) {
+    const named =
+      untested.length === 1
+        ? untested[0]
+        : `${untested.slice(0, -1).join(", ")} og ${untested[untested.length - 1]}`;
+    return `Kjøringen med grenser testet ikke ${named}.`;
+  }
   return HIRABLE.includes(decisionFor(after) ?? "")
     ? null
     : "Kjøringen med grenser har ikke bestått.";
