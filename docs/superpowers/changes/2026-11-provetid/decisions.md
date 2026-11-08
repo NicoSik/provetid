@@ -229,6 +229,8 @@ Items marked *pending* or *open* are not settled yet.
 - A11 (D17, REQ-3.4): Lookups hide the address and phone number only in `enforce`. In `observe`
   they return the full record, so «før» runs show what the bot does without the lock. (#105,
   PR #109)
+- A12 (Q5), a new decision: The pitch names the shop as the buyer (#134). A test paid for by the
+  vendors it tests is not independent, so the earlier vendor channel is dropped. The price stays open.
 - Pending (D27): The bar for the demo plan is lower than D27's 5 red cards. With the honest bot
   and its policies, a live `observe` run gives 1–2 real breaks. The proposed bar is: the Kari
   confirmation break is red in `observe`, blocked in `enforce`, no grey chats. PR #100 used it and

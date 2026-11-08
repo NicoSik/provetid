@@ -1,7 +1,7 @@
 # Pitch: Prøvetid (2 minutes)
 
 One speaker (Nico) and one keyboard-only driver (D45). Do Not Disturb on. Scene-modus on (D44).
-The spoken text is Norwegian, about 270 words. Read it aloud once with a stopwatch. If it runs
+The spoken text is Norwegian, about 275 words. Read it aloud once with a stopwatch. If it runs
 long, cut «De fleste verktøy filtrerer tekst.» first, then «og legger til at hun kan vise den når
 hun henter bestillingen». Keep the lines before the Kari card: they fill the wait until it turns red.
 
@@ -95,9 +95,9 @@ hidden slides. At «Alle AI-er», → to the blue slide.*
 nøklene», → to the last slide. Stay there for the questions.*
 
 > Samme tjue kunder, etter at eieren godkjente forslagene. To ganger prøvde AI-en, og porten
-> stoppet den begge gangene: «Klar for prøvetid». Vi skal selge gjennom leverandørene av
-> AI-ansatte, og låsene på handlingene skal bli en MCP-server. Én leverandør, og alle butikkene
-> deres får prøvetid. AI-en får nøklene først når den har bestått intervjuet.
+> stoppet den begge gangene: «Klar for prøvetid». Vi skal selge direkte til butikkene, så vi er
+> uavhengige av leverandørene vi tester. Låsene på handlingene skal bli en MCP-server, så låsene
+> følger butikken, ikke leverandøren. AI-en får nøklene først når den har bestått intervjuet.
 
 ## Jury map
 
@@ -106,13 +106,13 @@ The map uses roles, not names: the policy allows no real person in the repositor
 | Jury seat | What they look for | The line in the script | Their likely question |
 |---|---|---|---|
 | Founder and CEO, Vaskeladden | A real problem for a small business, a simple product | «Små bedrifter gir nå AI tilgang …» | «Hvem betaler?» |
-| Two founding engineers, Wybe Robotics | AI employees that act on their own and stay safe | «… roboten på nattskift» and «AI-ansatte» | «Virker dette for roboter?» |
+| Two founding engineers, Wybe Robotics | AI employees that act on their own and stay safe | «… roboten på nattskift» | «Virker dette for roboter?» |
 | Head of Holio | Orders, refunds and returns behind online stores | «… tilgang til ordrer, refusjoner og kundedata», refusjon bare til samme betalingsmåte | «Hva med returer?» |
 | Ethical hacker, Telenor | Real attacks, not a staged test | Ten scam types from svindel.no and Nettvett; «Først sier AI-en nei. Svindleren spør igjen.»; «en svindler trenger bare å lykkes én gang» | «Hva med prompt injection og nye svindler?», «Er ikke dette bare en MCP-gateway?» |
 | Principal Data Engineer, Knowit | It is built right and can be checked | «De ligger i koden, mellom AI-en og dataene»; «låsene på handlingene skal bli en MCP-server» | «Hvordan vet dere at dommeren har rett?», «Er ikke dette bare en MCP-gateway?» |
 | Senior AI Product Director, Opera | Trust in AI that acts for people | «Alle AI-er som gjør ting for oss, trenger det: … nettleseragenten …»; «låsene på handlingene skal bli en MCP-server» | «Hva med agenter i nettleseren?» |
 | Partner, Ro Sommernes law firm | Proof and responsibility | «Hvert brudd har et sitat som bevis»; «Eieren har ansvaret» | «Hvem har ansvaret når AI-en gjør feil?» |
-| Founder of Aukonomi, lecturer in digital marketing | A clear buyer and a way to reach them | «Vi skal selge gjennom leverandørene av AI-ansatte» | «Hvordan når dere butikkene?» |
+| Founder of Aukonomi, lecturer in digital marketing | A clear buyer and a way to reach them | «Vi skal selge direkte til butikkene» | «Hvordan når dere butikkene?» |
 | Senior Digital Designer, Knowit Experience | A flow an owner understands without help | Stillingsannonse, Intervju, Karakterkort, Signeringsrett: the step bar | «Hvorfor et jobbintervju?» |
 | Creative lead and product marketer, Opera | A story and a line people remember | The Kari opening and «AI-en får nøklene først når den har bestått intervjuet» | «Hva er historien i én setning?» |
 
@@ -138,16 +138,17 @@ If a judge asks whether it works on real scams, the driver opens the live tab (C
 
 > Teksten blir renset først. Vi lagrer den aldri, og vi åpner ingen lenker.
 
-Prepared answers, one or two sentences each. The buyer and the price (Q5) are still Nico's
-decision: the answers marked *(forslag)* are a proposal until he confirms them.
+Prepared answers, one or two sentences each. The buyer is the shop (A12). The price (Q5) is still
+Nico's decision: the answers marked *(forslag)* are a proposal until he confirms them.
 
 | Question | Answer |
 |---|---|
 | «Hva med Lakera og andre guardrails?» | De fleste filtrerer tekst. Vi låser handlinger, som rabatt, refusjon og kundedata, etter eierens egne regler, og beviser det med intervjuet. |
 | «Er ikke dette bare en MCP-gateway?» (Knowit, Telenor) | MCP-delen er ikke bygget ennå. Porten sjekker mot butikkens egne data: en ordrebekreftelse går bare til e-posten som står på kunden. Og intervjuet viser hvilke regler AI-en bryter før den får nøklene. |
 | «Er MCP-serveren bygget?» | Nei, ikke ennå. Låsene på handlingene trenger bare verktøykallet, eierens grenser og butikkens data, så de passer rett inn i en MCP-server. Intervjuet og svarfilteret trenger chatten, så de skal kobles til den. |
-| «Hvem betaler?» *(forslag)* | Leverandøren av AI-ansatte, per AI-ansatt per måned. Butikken trenger ikke gjøre noe teknisk. |
-| «Hvordan kobler dere dere på botten min?» *(forslag)* | Via leverandøren. Intervjuet skal kobles til chatten, og låsene skal bli en MCP-server mellom AI-en og butikkens data. Butikkene får en knapp, «test før lansering». |
+| «Hvem betaler?» *(forslag)* | Butikken selv. Intervjuet er gratis og viser hvilke regler AI-en bryter. Låsene koster per butikk per måned. |
+| «Hvorfor ikke selge gjennom leverandørene?» | En test som betales av dem som blir testet, er ikke uavhengig. Butikken skal kunne stole på resultatet og bytte leverandør. |
+| «Hvordan kobler dere dere på boten min?» | Intervjuet skal kobles til chatten i butikken. Låsene skal bli en MCP-server mellom AI-en og butikkens data, så de krever at AI-en kan bruke MCP. En lukket bot kan få intervjuet, men ikke låsene. |
 | «Hva om porten går ned?» | Vi bygger den slik at den da stopper alle handlinger. Sikkerhet går foran oppetid. |
 | «GDPR?» | Intervjuet bruker bare oppdiktede data. I drift blir vi databehandler og inngår databehandleravtale. |
 | «Vil ikke en bedre modell fikse dette?» | Kanskje sjeldnere, men en svindler trenger bare å lykkes én gang. Låsene for rabatt, refusjon og ordrebekreftelser virker uansett modell. |
@@ -158,7 +159,7 @@ decision: the answers marked *(forslag)* are a proposal until he confirms them.
 | «Hva med prompt injection og nye svindler?» (Telenor) | Med «Send inn svindel» blir en ny svindelmelding en test på et minutt. Og om noen lurer modellen, stopper porten de låste handlingene likevel. |
 | «Hvordan vet dere at dommeren har rett?» (Knowit) | Kode avgjør lekkasjer og grenser. Dommeren må sitere ordrett, ellers teller ikke bruddet. Vi tester dommeren mot åtte fasitsamtaler, og én av dem prøver å lure den. |
 | «Hvem har ansvaret når AI-en gjør feil?» (Ro Sommernes) | Butikken. Derfor får eieren et karakterkort som kan skrives ut: hva som ble testet, og hva som feilet, med sitat. |
-| «Hvordan når dere butikkene?» *(forslag)* (Aukonomi) | Gjennom leverandørene som allerede selger AI-ansatte til butikker. For dem blir Prøvetid en knapp i produktet, ikke et nytt salg til hver butikk. |
+| «Hvordan når dere butikkene?» *(forslag)* (Aukonomi) | Med det gratis intervjuet. Butikken ser med sitater hvilke regler AI-en bryter, og kjøper låsene etterpå. |
 | «Hvorfor et jobbintervju?» (design) | De fleste eiere har ansatt noen før. Annonse, intervju, karakterkort og signeringsrett trenger ingen forklaring. |
 | «Hva er historien i én setning?» (marketing) | Ingen AI får nøklene til butikken før den har bestått jobbintervjuet. |
 | «Var dette rigget?» | Nei, men det skjer ikke hver gang. Vi viser en ekte kjøring fra i helgen, der én av tjue samtaler gikk galt. Boten har butikkens egne regler og retningslinjer. |
@@ -199,5 +200,5 @@ decision: the answers marked *(forslag)* are a proposal until he confirms them.
 - The MCP server is not built. Say «skal», never that it works today. Only the locks
   on actions fit MCP: the interview and the reply filter need the chat. The Neon fact comes from
   Opera's press release of 31 March 2026 (MCP Connector for Opera Neon).
-- Open: price and buyer (Q5). The script's vendor sentence in «Før og etter» and the *(forslag)*
-  answers follow the proposal; cut them if Nico decides otherwise.
+- Open: the price (Q5). The *(forslag)* answers follow the proposal; cut them if Nico decides
+  otherwise.
