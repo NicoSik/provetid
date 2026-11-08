@@ -6,7 +6,7 @@ working version. If you change an artifact, copy it here again.
 | Files | Artifact | Version |
 |---|---|---|
 | `deck.json`, `slides/`, `assets/` | «Prøvetid pitch» (https://claude.ai/artifact/Ton2SKbG6LHim2jgwjy64z) | `1794136129-a63f` |
-| `../manus.html` | «Prøvetid manus» | `1794136842-90b1` |
+| `../manus.html` | «Prøvetid manus» | `1794137945-a71b` |
 
 `deck.json` lists the slides in deck order. Each file in `slides/` is one slide, with its speaker
 notes in the `<aside>` element.
