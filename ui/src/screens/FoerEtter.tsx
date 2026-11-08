@@ -8,6 +8,7 @@ import { decisionFor, runCounts } from "../report/rows";
 import { useSession } from "../state/session";
 import { CONNECTION_MESSAGES, RUN_ERROR_TEXT } from "./Intervju";
 import { DECISION_STYLES } from "./Karakterkort";
+import { PAGE } from "./layout";
 import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/foer-etter", step: null, title: "Før og etter" };
@@ -154,7 +155,7 @@ export function CompareView({
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
+    <div className={`${PAGE} space-y-6`}>
       <h1 className="text-xl font-bold text-ink">Før og etter</h1>
       {differentRules && (
         <p role="alert" className="rounded-md border border-brudd bg-brudd/10 p-3 text-sm text-ink">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChatCard } from "../components/ChatCard";
 import { ChatPanel } from "../components/ChatPanel";
+import { EmptyStep } from "../components/EmptyStep";
 import type { RunState } from "../events/reducer";
 import { replayName } from "../events/replay";
 import type { ConnectionStatus } from "../events/stream";
@@ -186,11 +187,7 @@ export default function Intervju() {
   const runId = replayName() ?? currentRunId;
 
   if (runId === null) {
-    return (
-      <div className="flex h-full items-center justify-center p-6">
-        <p className="text-muted">Ingen intervju er i gang.</p>
-      </div>
-    );
+    return <EmptyStep title="Intervju" text="Ingen intervju er i gang." />;
   }
   // The key starts a new run from a clean slate: no open panel and no old cards.
   return <LiveInterview key={runId} runId={runId} />;

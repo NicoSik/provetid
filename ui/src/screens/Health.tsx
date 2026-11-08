@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getHealth, type Health as HealthAnswer } from "../api/health";
 import { replayName } from "../events/replay";
+import { PAGE } from "./layout";
 import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/health", step: null, title: "Klarsjekk" };
@@ -108,7 +109,7 @@ export default function Health() {
   }, [replay]);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className={`${PAGE} space-y-6`}>
       <h1 className="text-xl font-bold text-ink">Klarsjekk</h1>
 
       {replay && (

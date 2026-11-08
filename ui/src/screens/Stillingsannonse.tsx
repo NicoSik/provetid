@@ -3,6 +3,7 @@ import { buildPlan, getPlan, isLock, putPlan, type TestPlan } from "../api/plans
 import { startRun } from "../api/runs";
 import { replayName } from "../events/replay";
 import { DEMO_PLAN_ID, getSession, updateSession } from "../state/session";
+import { PAGE, PROSE } from "./layout";
 import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/stillingsannonse", step: 1, title: "Stillingsannonse" };
@@ -90,7 +91,7 @@ function PlanView({ initial }: { initial: TestPlan }) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className={`${PROSE} space-y-8`}>
       <section aria-labelledby="annonse" className="space-y-2">
         <h2 id="annonse" className="text-lg font-semibold text-ink">
           Annonseteksten
@@ -242,7 +243,7 @@ export default function Stillingsannonse() {
   }, [replay]);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className={`${PAGE} space-y-6`}>
       <h1 className="text-xl font-bold text-ink">Stillingsannonse</h1>
       {replay && (
         <p className="text-muted">

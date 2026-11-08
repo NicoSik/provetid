@@ -7,6 +7,7 @@ import { CompareButton } from "../components/CompareButton";
 import { replayName } from "../events/replay";
 import { type LockRules, lockRules } from "../report/lockRules";
 import { DEMO_PLAN_ID, getSession, updateSession, useSession } from "../state/session";
+import { PAGE, PROSE } from "./layout";
 import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/signeringsrett", step: 4, title: "Signeringsrett" };
@@ -208,7 +209,7 @@ function LimitsForm({ saved }: { saved: Limits }) {
 
   return (
     <form
-      className="space-y-8"
+      className={`${PROSE} space-y-8`}
       onSubmit={(event) => {
         event.preventDefault();
         void runAgain();
@@ -335,7 +336,7 @@ export default function Signeringsrett() {
   }, [replay]);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className={`${PAGE} space-y-6`}>
       <h1 className="text-xl font-bold text-ink">Signeringsrett</h1>
       {replay && (
         <p className="text-muted">
