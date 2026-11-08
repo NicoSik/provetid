@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { type DismissState, dismiss, getDismissed } from "../api/dismiss";
 import { replayName } from "../events/replay";
+import { PAGE } from "./layout";
 import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/proevetid", step: 5, title: "Prøvetid" };
@@ -66,7 +67,7 @@ export default function Proevetid() {
   const dismissed = state?.dismissed ?? false;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 p-6">
+    <div className={`${PAGE} space-y-8`}>
       <h1 className="text-xl font-bold text-ink">Prøvetid</h1>
 
       {replay && (

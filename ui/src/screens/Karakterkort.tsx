@@ -3,6 +3,7 @@ import { startLimitedRun } from "../api/limitedRun";
 import { getLimits } from "../api/limits";
 import { listRuns } from "../api/runs";
 import { CompareButton } from "../components/CompareButton";
+import { EmptyStep } from "../components/EmptyStep";
 import type { RunState } from "../events/reducer";
 import { replayName } from "../events/replay";
 import { useRun } from "../events/useRun";
@@ -10,6 +11,7 @@ import { applyFixes, fixesFor } from "../report/fixes";
 import { decisionFor, ruleRows } from "../report/rows";
 import { getSession, updateSession, useSession } from "../state/session";
 import { CONNECTION_MESSAGES, RUN_ERROR_TEXT } from "./Intervju";
+import { PAGE } from "./layout";
 import type { ScreenMeta } from "./registry";
 import "../styles/print.css";
 
@@ -179,7 +181,7 @@ export function ReportView({ state }: { state: RunState }) {
   const { untested, blocked } = ruleRows(state);
   const { afterRunId } = useSession();
   return (
-    <div className="mx-auto max-w-4xl space-y-6 p-6">
+    <div className={`${PAGE} space-y-6`}>
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-ink">Karakterkort</h1>
         <button
@@ -238,20 +240,23 @@ function LiveReport({ runId }: { runId: string }) {
   return (
     <>
       {connection !== "connected" && (
-        <div
-          role="alert"
-          className="mx-auto mt-6 flex max-w-4xl flex-wrap items-center gap-3 rounded-md border border-stoppet bg-stoppet/10 p-3 text-sm text-ink"
-        >
-          <p>{CONNECTION_MESSAGES[connection]}</p>
-          {connection === "missing" && (
-            <button
-              type="button"
-              onClick={() => updateSession({ currentRunId: null })}
-              className="rounded-md border border-line bg-raised px-2.5 py-1 hover:bg-raised-hover"
-            >
-              Fjern kjøringen
-            </button>
-          )}
+        // In the page frame, so the banner shares the content's left edge (#121).
+        <div className={`${PAGE} pb-0`}>
+          <div
+            role="alert"
+            className="flex flex-wrap items-center gap-3 rounded-md border border-stoppet bg-stoppet/10 p-3 text-sm text-ink"
+          >
+            <p>{CONNECTION_MESSAGES[connection]}</p>
+            {connection === "missing" && (
+              <button
+                type="button"
+                onClick={() => updateSession({ currentRunId: null })}
+                className="rounded-md border border-line bg-raised px-2.5 py-1 hover:bg-raised-hover"
+              >
+                Fjern kjøringen
+              </button>
+            )}
+          </div>
         </div>
       )}
       {!gone && <ReportView state={state} />}
@@ -263,11 +268,7 @@ export default function Karakterkort() {
   const { currentRunId } = useSession();
   const runId = replayName() ?? currentRunId;
   if (runId === null) {
-    return (
-      <div className="flex h-full items-center justify-center p-6">
-        <p className="text-muted">Ingen intervju å vise.</p>
-      </div>
-    );
+    return <EmptyStep title="Karakterkort" text="Ingen intervju å vise." />;
   }
   return <LiveReport key={runId} runId={runId} />;
 }
