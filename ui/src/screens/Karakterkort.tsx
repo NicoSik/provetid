@@ -2,6 +2,7 @@ import { useState } from "react";
 import { startLimitedRun } from "../api/limitedRun";
 import { getLimits } from "../api/limits";
 import { listRuns } from "../api/runs";
+import { BUTTON } from "../components/buttons";
 import { CompareButton } from "../components/CompareButton";
 import { EmptyStep } from "../components/EmptyStep";
 import type { RunState } from "../events/reducer";
@@ -155,7 +156,7 @@ function Fixes({ state }: { state: RunState }) {
               updateSession({ currentRunId: getSession().afterRunId });
               window.location.hash = "#/intervju";
             }}
-            className="rounded-md border border-line bg-raised px-3 py-1.5 text-sm text-ink hover:bg-raised-hover"
+            className={BUTTON.secondary}
           >
             Se intervjuet med grenser
           </button>
@@ -166,7 +167,7 @@ function Fixes({ state }: { state: RunState }) {
             type="button"
             disabled={busy}
             onClick={() => void applySuggestions()}
-            className="rounded-md bg-pagar px-4 py-2 font-semibold text-surface hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className={BUTTON.primary}
           >
             Bruk forslagene
           </button>
@@ -188,7 +189,7 @@ export function ReportView({ state }: { state: RunState }) {
           type="button"
           data-no-print
           onClick={() => window.print()}
-          className="rounded-md border border-line bg-raised px-3 py-1.5 text-sm text-ink hover:bg-raised-hover"
+          className={BUTTON.secondary}
         >
           Skriv ut
         </button>

@@ -52,31 +52,37 @@ function RunSummaryBar({ state }: { state: RunState }) {
   const done = chats.filter((chat) => chat.ended).length;
 
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted">
-      <h1 className="text-xl font-bold text-ink">Intervju</h1>
-      {state.mode && <span>{state.mode === "enforce" ? "Med grenser" : "Uten grenser"}</span>}
-      <span className="tabular-nums">
-        {done} av {total} samtaler ferdige
-      </span>
-      <span
-        className={`font-semibold tabular-nums ${countOf("Brudd") > 0 ? "text-brudd" : "text-muted"}`}
-      >
-        {countOf("Brudd")} brudd
-      </span>
-      <span
-        className={`font-semibold tabular-nums ${countOf("Stoppet") > 0 ? "text-stoppet" : "text-muted"}`}
-      >
-        {countOf("Stoppet")} stoppet
-      </span>
-      {state.finished &&
-        (state.finished.incomplete ? (
-          <span className="font-semibold text-stoppet">Testen er ufullstendig</span>
-        ) : (
-          <span className="font-semibold text-ink">Intervjuet er ferdig</span>
-        ))}
-      <span data-dev className="ml-auto text-xs">
-        → neste brudd · Esc lukker
-      </span>
+    // The heading and the keyboard hint on one row, the run's figures on their own row, so the
+    // figures keep the full width when the chat panel opens (#138).
+    <div className="space-y-1">
+      <div className="flex items-baseline justify-between gap-4">
+        <h1 className="text-xl font-bold text-ink">Intervju</h1>
+        <span data-dev className="text-xs text-muted">
+          → neste brudd · Esc lukker
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted">
+        {state.mode && <span>{state.mode === "enforce" ? "Med grenser" : "Uten grenser"}</span>}
+        <span className="tabular-nums">
+          {done} av {total} samtaler ferdige
+        </span>
+        <span
+          className={`font-semibold tabular-nums ${countOf("Brudd") > 0 ? "text-brudd" : "text-muted"}`}
+        >
+          {countOf("Brudd")} brudd
+        </span>
+        <span
+          className={`font-semibold tabular-nums ${countOf("Stoppet") > 0 ? "text-stoppet" : "text-muted"}`}
+        >
+          {countOf("Stoppet")} stoppet
+        </span>
+        {state.finished &&
+          (state.finished.incomplete ? (
+            <span className="font-semibold text-stoppet">Testen er ufullstendig</span>
+          ) : (
+            <span className="font-semibold text-ink">Intervjuet er ferdig</span>
+          ))}
+      </div>
     </div>
   );
 }

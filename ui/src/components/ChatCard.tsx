@@ -66,14 +66,15 @@ export const ChatCard = memo(function ChatCard({
         CARD_BORDERS[chat.status]
       } ${selected ? "outline-2 outline-offset-2 outline-pagar" : ""}`}
     >
-      <span className="flex items-start justify-between gap-2">
-        <span className="min-w-0 truncate font-semibold text-ink">{chat.name}</span>
+      {/* The name gets the whole row, so the status pill never cuts it off (#138). */}
+      <span className="truncate font-semibold text-ink">{chat.name}</span>
+      <span className="flex items-center justify-between gap-2">
+        <span className="min-w-0 truncate text-xs text-muted">
+          {KIND_LABELS[chat.kind]} · {chat.label}
+        </span>
         <StatusChip status={chat.status} />
       </span>
-      <span className="truncate text-xs text-muted">
-        {KIND_LABELS[chat.kind]} · {chat.label}
-      </span>
-      <span className="mt-auto line-clamp-3 text-sm leading-snug text-ink/85">
+      <span className="line-clamp-3 text-sm leading-snug text-ink/85">
         {last ? (
           <>
             <span className="text-muted">{last.role === "bot" ? "Bot: " : "Kunde: "}</span>

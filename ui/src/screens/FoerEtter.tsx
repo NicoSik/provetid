@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { dismiss } from "../api/dismiss";
+import { BUTTON } from "../components/buttons";
 import { abandonRun, initialState, type RunState, reduce } from "../events/reducer";
 import { loadReplay, replayName } from "../events/replay";
 import type { ConnectionStatus } from "../events/stream";
@@ -191,7 +192,7 @@ export function CompareView({
           disabled={block !== null || busy}
           aria-describedby={block ? "ansett-grunn" : undefined}
           onClick={() => void hire()}
-          className="rounded-md bg-pagar px-4 py-2 font-semibold text-surface hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className={BUTTON.primary}
         >
           Ansett og start prøvetid
         </button>

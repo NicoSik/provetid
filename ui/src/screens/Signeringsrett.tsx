@@ -3,6 +3,7 @@ import { startLimitedRun } from "../api/limitedRun";
 import { getLimits, type Limits } from "../api/limits";
 import { getPlan } from "../api/plans";
 import { listRuns } from "../api/runs";
+import { BUTTON } from "../components/buttons";
 import { CompareButton } from "../components/CompareButton";
 import { replayName } from "../events/replay";
 import { type LockRules, lockRules } from "../report/lockRules";
@@ -287,11 +288,7 @@ function LimitsForm({ saved }: { saved: Limits }) {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={!valid || running}
-        className="rounded-md bg-pagar px-4 py-2 font-semibold text-surface hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-      >
+      <button type="submit" disabled={!valid || running} className={BUTTON.primary}>
         Kjør intervjuet igjen
       </button>
     </form>
