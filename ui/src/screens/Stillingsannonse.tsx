@@ -78,10 +78,11 @@ function PlanView({ initial }: { initial: TestPlan }) {
     setFailed(false);
     try {
       const { run_id } = await startRun({ plan_id: plan.id, mode: "observe" });
+      // A run without limits is the «før» run, so «Før og etter» finds it right away (#143).
       updateSession({
         planId: plan.id,
         currentRunId: run_id,
-        beforeRunId: null,
+        beforeRunId: run_id,
         afterRunId: null,
       });
       window.location.hash = "#/intervju";
