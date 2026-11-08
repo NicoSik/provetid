@@ -15,6 +15,12 @@
   --color-ikke-testet: #4f5672;
 }
 
+/* The step bar stays on one line at 1280 px, also with the replay badge (#122). The grid keeps the
+   full 125 %; the header text ends at about 110 %. */
+.scene [data-stepnav] {
+  zoom: 0.88;
+}
+
 /* data-dev is for the team. data-scene is the plain text that replaces it for the audience. */
 .scene [data-dev],
 [data-scene] {

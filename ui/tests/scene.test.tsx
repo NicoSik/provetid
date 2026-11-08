@@ -258,3 +258,69 @@ describe("the selected card", () => {
     HTMLElement.prototype.scrollIntoView = original;
   });
 });
+
+describe("a card that turns Brudd", () => {
+  const broke = ev(5, "verdict", "a", {
+    source: "code",
+    results: [
+      {
+        rule_id: "R1",
+        outcome: "fail",
+        severity: "high",
+        quote: null,
+        message_index: null,
+        explanation: null,
+      },
+    ],
+    summary: null,
+  });
+  // A chat that is still going: no flagged call, no verdict yet.
+  const going = [
+    ev(1, "run_started", null, { mode: "observe", chat_count: 1, rules: [] }),
+    ev(2, "chat_started", "a", {
+      name: "Kari Test",
+      kind: "scam",
+      label: "Tester",
+      source: "hand",
+      target_rules: [],
+    }),
+  ].reduce(reduce, initialState());
+  const original = HTMLElement.prototype.scrollIntoView;
+  const scroll = vi.fn();
+  beforeEach(() => {
+    scroll.mockClear();
+    HTMLElement.prototype.scrollIntoView = scroll;
+    root.classList.add("scene");
+  });
+  afterEach(() => {
+    HTMLElement.prototype.scrollIntoView = original;
+  });
+
+  it("scrolls into view, so the audience sees it turn red", () => {
+    const { rerender } = render(<InterviewView state={going} />);
+    expect(scroll).not.toHaveBeenCalled();
+    rerender(<InterviewView state={reduce(going, broke)} />);
+    expect(scroll).toHaveBeenCalledWith({ block: "nearest", behavior: "smooth" });
+  });
+
+  it("stays put while a chat panel is open", () => {
+    const { rerender } = render(<InterviewView state={going} />);
+    fireEvent.click(screen.getByRole("button", { name: /Kari Test/ }));
+    const calls = scroll.mock.calls.length;
+    rerender(<InterviewView state={reduce(going, broke)} />);
+    expect(scroll).toHaveBeenCalledTimes(calls);
+  });
+
+  it("stays put outside Scene-modus", () => {
+    root.classList.remove("scene");
+    const { rerender } = render(<InterviewView state={going} />);
+    rerender(<InterviewView state={reduce(going, broke)} />);
+    expect(scroll).not.toHaveBeenCalled();
+  });
+
+  it("stays put for a card that is already red when the screen opens", () => {
+    const { rerender } = render(<InterviewView state={reduce(going, broke)} />);
+    rerender(<InterviewView state={reduce(going, broke)} />);
+    expect(scroll).not.toHaveBeenCalled();
+  });
+});

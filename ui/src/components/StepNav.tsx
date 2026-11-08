@@ -19,12 +19,15 @@ type Props = {
 /** The step bar. A step links when a registered screen has that step number. */
 export function StepNav({ screens, currentPath }: Props) {
   return (
-    <header className="flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-line bg-raised px-6 py-3">
+    <header
+      data-stepnav
+      className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-line bg-raised px-5 py-3"
+    >
       <a href="#/" className="text-lg font-bold tracking-tight text-ink">
         Prøvetid
       </a>
       <nav aria-label="Steg" className="min-w-0 flex-1">
-        <ol className="flex flex-wrap items-center gap-x-1 gap-y-1">
+        <ol className="flex flex-wrap items-center gap-x-0.5 gap-y-1">
           {STEP_NAMES.map((name, index) => {
             const target = screens.find((candidate) => candidate.meta.step === index + 1);
             const isCurrent = target?.meta.path === currentPath;
@@ -34,7 +37,7 @@ export function StepNav({ screens, currentPath }: Props) {
                   <a
                     href={`#${target.meta.path}`}
                     aria-current={isCurrent ? "step" : undefined}
-                    className={`block rounded-md px-3 py-1.5 text-sm font-medium ${
+                    className={`block rounded-md px-2.5 py-1.5 text-sm font-medium ${
                       isCurrent ? "bg-pagar/15 text-ink" : "text-muted hover:text-ink"
                     }`}
                   >
@@ -43,7 +46,7 @@ export function StepNav({ screens, currentPath }: Props) {
                 ) : (
                   <span
                     aria-disabled="true"
-                    className="block cursor-default rounded-md px-3 py-1.5 text-sm text-muted/50"
+                    className="block cursor-default rounded-md px-2.5 py-1.5 text-sm text-muted/50"
                   >
                     {name}
                   </span>
