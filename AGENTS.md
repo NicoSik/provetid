@@ -21,6 +21,7 @@ Run every command from the repository root.
 | `make check` | Runs exactly the CI checks. Run it before every push. |
 | `make fmt` | Formats and fixes lint in the engine and the UI. |
 | `make demo` | Builds the UI and serves it from the engine on :8000. |
+| `make pitch` | Serves the demo with the real model and opens the stage tabs in Chrome (macOS only). |
 | `make live-ping` | Makes one real model call per role. |
 | `make live-probe` | Measures call times per model. |
 | `make live-sweep` | Runs the refusal sweep over the fake customers. |

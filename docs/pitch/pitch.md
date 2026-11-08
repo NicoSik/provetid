@@ -17,6 +17,11 @@ beats. «Send inn svindel» in the question round is live.
 Start the engine with the real model, so «Send inn svindel» works:
 `PROVETID_TRANSPORT=claude make demo`.
 
+On macOS, `make pitch` does this and opens the three tabs below in a new Chrome window. It stops if
+port 8000 is in use, or if a replay or the demo plan is missing. Start Present mode in tab 1
+yourself. Count the Tabs in the script once after `make pitch`, because the focus can differ in a
+tab that the command opened.
+
 Open three tabs, in this order, and leave tab 1 in front:
 
 1. The deck in Present mode, on the cover: https://claude.ai/artifact/Ton2SKbG6LHim2jgwjy64z.
