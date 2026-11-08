@@ -22,6 +22,11 @@ describe("buttons", () => {
   it.each(Object.entries(BUTTON))("%s has the shared size and no other padding", (_, cls) => {
     expect(cls.match(/\bp[xytrbl]?-\S+/g)).toEqual(["px-4", "py-2"]);
     expect(cls).not.toMatch(/\btext-(xs|sm|base|lg|xl)\b/);
+    // Every variant has a 1 px border (transparent when filled), so outline and filled buttons
+    // are the same height side by side.
+    expect(cls).toMatch(/(^|\s)border(\s|$)/);
+    // ...with its own colour, so a filled button never shows a default-coloured edge.
+    expect(cls).toMatch(/(^|\s)border-(transparent|line)(\s|$)/);
   });
 
   it.each(FILES)("%s fills no button outside the shared set", (file) => {
