@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prøvetid pitch</title>
+<!--
+  Shows the copied deck (deck.json + slides/ + assets/) without claude.ai.
+  Serve this folder over HTTP (`make pitch` does it), because the page fetches the slide files.
+  Keys: → Space PageDown next, ← PageUp back, Home End, F full screen, N speaker notes.
+  ?vis=intervju,bevis also shows these hidden slides. Print (Cmd+P) gives one slide per page.
+-->
+<style>
+  :root { --stage: #000; --note-bg: rgba(20, 23, 43, 0.94); --note-fg: #F4F5FA; --hint: #7A819E; }
+  html, body { margin: 0; height: 100%; background: var(--stage); overflow: hidden; }
+  #viewport { position: fixed; inset: 0; overflow: hidden; }
+  #slide-host { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center center; }
+  #slide-host section {
+    position: absolute; inset: 0; width: 1920px; height: 1080px; box-sizing: border-box; overflow: hidden;
+    opacity: 0; transition: opacity 250ms ease; pointer-events: none;
+  }
+  #slide-host section.current { opacity: 1; pointer-events: auto; }
+  #slide-host section *, #slide-host section *::before, #slide-host section *::after { box-sizing: border-box; }
+  #slide-host :is(h1, h2, h3, h4, p, ul, ol, figure) { margin: 0; }
+  #slide-host aside { display: none; }
+  #slide-host img { display: block; }
+  x-icon { display: inline-block; flex: none; }
+  x-icon svg { width: 100%; height: 100%; display: block; }
+  x-shape { display: block; flex: none; }
+  x-shape[kind="arrow-right"] { clip-path: polygon(0 32%, 62% 32%, 62% 0, 100% 50%, 62% 100%, 62% 68%, 0 68%); }
+  #notes {
+    position: fixed; left: 24px; right: 24px; bottom: 24px; max-width: 72ch; margin: 0 auto;
+    padding: 16px 20px; border-radius: 12px; background: var(--note-bg); color: var(--note-fg);
+    font: 18px/1.5 Inter, Arial, sans-serif; display: none;
+  }
+  #notes.open { display: block; }
+  #notes .where { color: var(--hint); font-size: 14px; margin-bottom: 6px; }
+  #error { position: fixed; inset: 0; display: none; place-items: center; color: var(--note-fg);
+    font: 20px/1.5 Inter, Arial, sans-serif; padding: 16px; text-align: center; }
+  @media (prefers-reduced-motion: reduce) { #slide-host section { transition: none; } }
+  @page { size: 1920px 1080px; margin: 0; }
+  @media print {
+    html, body { height: auto; overflow: visible; }
+    #viewport { position: static; overflow: visible; }
+    #slide-host { position: static; transform: none !important; width: auto; height: auto; }
+    #slide-host section { position: relative; opacity: 1; transition: none; break-after: page;
+      print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    #notes, #error { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="viewport"><div id="slide-host"></div></div>
+<div id="notes" role="status" aria-live="polite"><div class="where"></div><div class="text"></div></div>
+<div id="error"></div>
+<script>
+// Simple line icons for the names the deck uses. Each is drawn on a 24×24 grid in currentColor.
+const ICONS = {
+  Chat: '<path d="M4 5h16v11H9l-5 4z"/>',
+  Database: '<ellipse cx="12" cy="5.5" rx="7" ry="2.5"/><path d="M5 5.5v13c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-13"/><path d="M5 12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5"/>',
+  Globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',
+  Home: '<path d="M3 11l9-7 9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/>',
+  Key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9"/><path d="M17 6l3 3"/><path d="M15 8l2 2"/>',
+  Lightbulb: '<path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.9.7 1.5 1.7 1.5 2.8V18h4v-1.3c0-1.1.6-2.1 1.5-2.8A6 6 0 0 0 12 3z"/>',
+  Lock: '<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
+  Search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>',
+  Tool: '<path d="M14.5 6.5a4 4 0 0 0 5 5L13 18a2.1 2.1 0 0 1-3-3l6.5-6.5"/><path d="M10 15l-6 6"/><path d="M14.5 6.5L17 4l3 3-2.5 2.5"/>',
+  Verified: '<path d="M12 3l2.4 1.8 3 .1.9 2.9 2.4 1.8-.9 2.9.9 2.9-2.4 1.8-.9 2.9-3 .1L12 21l-2.4-1.8-3-.1-.9-2.9L3.3 14.4l.9-2.9-.9-2.9 2.4-1.8.9-2.9 3-.1z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+};
+
+class XIcon extends HTMLElement {
+  connectedCallback() {
+    const body = ICONS[this.getAttribute('name')] ?? '<circle cx="12" cy="12" r="8"/>';
+    this.setAttribute('aria-hidden', 'true');
+    this.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
+  }
+}
+customElements.define('x-icon', XIcon);
+customElements.define('x-shape', class extends HTMLElement {});
+
+const host = document.getElementById('slide-host');
+const notes = document.getElementById('notes');
+let slides = [];
+let index = 0;
+
+function fit() {
+  const scale = Math.min(innerWidth / 1920, innerHeight / 1080);
+  host.style.transform = `translate(-50%, -50%) scale(${scale})`;
+}
+
+function show(next) {
+  if (slides.length === 0) return;
+  index = Math.max(0, Math.min(slides.length - 1, next));
+  slides.forEach((slide, i) => slide.classList.toggle('current', i === index));
+  const slide = slides[index];
+  history.replaceState(null, '', `#${slide.id}`);
+  notes.querySelector('.where').textContent = `${index + 1} av ${slides.length}`;
+  notes.querySelector('.text').textContent = slide.querySelector('aside')?.textContent.trim() ?? '';
+}
+
+function onKey(event) {
+  if (event.metaKey || event.ctrlKey || event.altKey) return; // leave Cmd+1 and friends to the browser
+  const key = event.key;
+  if (['ArrowRight', 'PageDown', ' '].includes(key)) show(index + 1);
+  else if (['ArrowLeft', 'PageUp'].includes(key)) show(index - 1);
+  else if (key === 'Home') show(0);
+  else if (key === 'End') show(slides.length - 1);
+  else if (key === 'n' || key === 'N') notes.classList.toggle('open');
+  else if (key === 'f' || key === 'F') {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(() => {});
+  } else return;
+  event.preventDefault();
+}
+
+class DeckError extends Error {}
+
+async function fetchOk(path) {
+  let answer;
+  try {
+    answer = await fetch(path);
+  } catch {
+    throw new DeckError(`Fikk ikke kontakt med serveren for ${path}.`);
+  }
+  if (!answer.ok) throw new DeckError(`Filen ${path} mangler.`);
+  return answer;
+}
+
+async function load() {
+  // Hidden slides stay out, as in the artifact's Present mode, unless ?vis= names them.
+  const shown = new Set((new URLSearchParams(location.search).get('vis') ?? '').split(',').filter(Boolean));
+  const deck = await (await fetchOk('deck.json')).json();
+  document.title = deck.title;
+  for (const face of Object.values(deck.faces ?? {})) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = face.href;
+    document.head.append(link);
+  }
+  for (const id of deck.order) {
+    const answer = await fetchOk(`slides/${id}.html`);
+    const holder = document.createElement('template');
+    holder.innerHTML = await answer.text();
+    const section = holder.content.querySelector('section');
+    if (!section) throw new DeckError(`Filen slides/${id}.html har ikke noe lysbilde.`);
+    if (section.hidden && !shown.has(id)) continue;
+    section.hidden = false;
+    for (const img of section.querySelectorAll('img[src^="/_blob/"]')) {
+      img.src = `assets/${img.getAttribute('src').slice('/_blob/'.length)}.png`;
+    }
+    host.append(section);
+  }
+  slides = [...host.querySelectorAll(':scope > section')];
+  const start = slides.findIndex((slide) => `#${slide.id}` === location.hash);
+  show(start >= 0 ? start : 0);
+}
+
+addEventListener('hashchange', () => {
+  const target = slides.findIndex((slide) => `#${slide.id}` === location.hash);
+  if (target >= 0 && target !== index) show(target);
+});
+addEventListener('resize', fit);
+addEventListener('keydown', onKey);
+fit();
+load().catch((error) => {
+  const box = document.getElementById('error');
+  const why = error instanceof DeckError ? error.message : 'Lysbildene har en feil.';
+  box.textContent = `Kunne ikke vise lysbildene. ${why} Start make pitch, eller server mappen docs/pitch/deck over HTTP.`;
+  box.style.display = 'grid';
+});
+</script>
+</body>
+</html>

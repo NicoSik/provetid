@@ -3,10 +3,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+import httpx
+
 from scripts import open_pitch
 from scripts.open_pitch import (
     blockers,
     chrome_script,
+    deck_server,
     main,
     port_in_use,
     stage_urls,
@@ -36,6 +39,40 @@ def test_stage_urls_match_the_setup_in_the_script() -> None:
 
 def test_stage_urls_use_the_port() -> None:
     assert all("localhost:8777" in url for url in stage_urls(8777)[1:])
+
+
+def test_the_deck_tab_is_the_copy_in_the_repo_on_the_next_port() -> None:
+    assert stage_urls(8777)[0] == "http://localhost:8778/"
+
+
+def test_the_deck_server_serves_the_copied_deck_without_caching() -> None:
+    server = deck_server(0)
+    try:
+        port = server.server_address[1]
+        page = httpx.get(f"http://127.0.0.1:{port}/", timeout=5)
+        assert page.status_code == 200
+        assert "deck.json" in page.text
+        assert page.headers["cache-control"] == "no-store"
+        deck = httpx.get(f"http://127.0.0.1:{port}/deck.json", timeout=5).json()
+        for slide in deck["order"]:
+            answer = httpx.get(f"http://127.0.0.1:{port}/slides/{slide}.html", timeout=5)
+            assert answer.status_code == 200
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_main_stops_when_the_deck_port_is_taken(monkeypatch, capsys) -> None:
+    def no_server(*args: object, **kwargs: object) -> None:
+        raise AssertionError("must not start a server")
+
+    monkeypatch.setattr(open_pitch.subprocess, "Popen", no_server)
+    with socket.socket() as listener:
+        listener.bind(("127.0.0.1", 0))
+        listener.listen()
+        deck_port = listener.getsockname()[1]
+        assert main([str(deck_port - 1)]) == 1
+    assert f"Port {deck_port} is in use" in capsys.readouterr().err
 
 
 def test_chrome_script_opens_the_tabs_in_order_with_the_first_in_front() -> None:
