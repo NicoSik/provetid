@@ -51,6 +51,16 @@ function subscribe(listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
+/** «Fjern kjøringen»: drop the current run, also where «Før og etter» uses it (#143). */
+export function forgetRun(): void {
+  const { currentRunId, beforeRunId, afterRunId } = getSession();
+  updateSession({
+    currentRunId: null,
+    beforeRunId: beforeRunId === currentRunId ? null : beforeRunId,
+    afterRunId: afterRunId === currentRunId ? null : afterRunId,
+  });
+}
+
 export function useSession(): Session {
   return useSyncExternalStore(subscribe, getSession);
 }

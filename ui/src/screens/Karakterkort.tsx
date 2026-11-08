@@ -10,7 +10,7 @@ import { replayName } from "../events/replay";
 import { useRun } from "../events/useRun";
 import { applyFixes, fixesFor } from "../report/fixes";
 import { decisionFor, ruleRows } from "../report/rows";
-import { getSession, updateSession, useSession } from "../state/session";
+import { forgetRun, getSession, updateSession, useSession } from "../state/session";
 import { CONNECTION_MESSAGES, RUN_ERROR_TEXT } from "./Intervju";
 import { PAGE } from "./layout";
 import type { ScreenMeta } from "./registry";
@@ -251,7 +251,7 @@ function LiveReport({ runId }: { runId: string }) {
             {connection === "missing" && (
               <button
                 type="button"
-                onClick={() => updateSession({ currentRunId: null })}
+                onClick={forgetRun}
                 className="rounded-md border border-line bg-raised px-2.5 py-1 hover:bg-raised-hover"
               >
                 Fjern kjøringen

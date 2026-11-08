@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TestPlan } from "../src/api/plans";
 import Stillingsannonse from "../src/screens/Stillingsannonse";
+import { getSession } from "../src/state/session";
 
 const DEMO: TestPlan = {
   id: "demo",
@@ -101,6 +102,20 @@ describe("«Lag regler» on Stillingsannonse", () => {
     fireEvent.click(screen.getByRole("button", { name: "Start intervju" }));
     await waitFor(() => expect(calls.some((c) => c.url === "/api/runs")).toBe(true));
     expect(calls.find((c) => c.url === "/api/runs")?.body).toMatchObject({ plan_id: "egen" });
+  });
+
+  it("keeps the interview as the «før» run, so «Før og etter» finds it (#143)", async () => {
+    stubEngine();
+    render(<Stillingsannonse />);
+    fireEvent.click(await screen.findByRole("button", { name: "Godkjenn planen" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Start intervju" })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Start intervju" }));
+    await waitFor(() => expect(getSession().currentRunId).not.toBeNull());
+    const { currentRunId, beforeRunId, afterRunId } = getSession();
+    expect(beforeRunId).toBe(currentRunId);
+    expect(afterRunId).toBeNull();
   });
 
   it("shows the engine's message when no rules could be made, and keeps the old ones", async () => {

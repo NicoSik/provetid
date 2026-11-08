@@ -7,7 +7,7 @@ import { replayName } from "../events/replay";
 import type { ConnectionStatus } from "../events/stream";
 import type { ErrorData } from "../events/types";
 import { useRun } from "../events/useRun";
-import { updateSession, useSession } from "../state/session";
+import { forgetRun, useSession } from "../state/session";
 import type { ScreenMeta } from "./registry";
 
 export const screen: ScreenMeta = { path: "/intervju", step: 2, title: "Intervju" };
@@ -178,13 +178,7 @@ export function InterviewView({
 
 function LiveInterview({ runId }: { runId: string }) {
   const { state, connection } = useRun(runId);
-  return (
-    <InterviewView
-      state={state}
-      connection={connection}
-      onForgetRun={() => updateSession({ currentRunId: null })}
-    />
-  );
+  return <InterviewView state={state} connection={connection} onForgetRun={forgetRun} />;
 }
 
 export default function Intervju() {
