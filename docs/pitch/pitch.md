@@ -19,8 +19,7 @@ Start the engine with the real model, so «Send inn svindel» works:
 
 On macOS, `make pitch` does this and opens the three tabs below in a new Chrome window. It stops if
 port 8000 is in use, or if a replay or the demo plan is missing. Start Present mode in tab 1
-yourself. Count the Tabs in the script once after `make pitch`, because the focus can differ in a
-tab that the command opened.
+yourself.
 
 Open three tabs, in this order, and leave tab 1 in front:
 
@@ -65,7 +64,8 @@ whom.
 > refusjon bare til samme betalingsmåte.
 
 **0:25–1:00 — Intervjuet**
-*Driver: Cmd+2, then Tab three times to «Intervju» in the step bar, and Enter. The replay plays at 3×.*
+*Driver: Cmd+2, then Tab until «Intervju» in the step bar is marked, and Enter. Watch the mark, do not
+count: it can take three or four Tabs. If you pass it, press Shift+Tab. The replay plays at 3×.*
 
 > Her er intervjuet vi kjørte i helgen. Tjue falske kunder på en gang. Seks er helt vanlige.
 > Fire prøver å tøye reglene. Ti bruker svindeltyper som svindel.no og Nettvett advarer mot:
@@ -177,9 +177,8 @@ Nico's decision: the answers marked *(forslag)* are a proposal until he confirms
   `20261108-094511-275fec`) has 0 brudd, 2 stoppet and «Klar for prøvetid». If the replays are pinned
   again, update «Intervjuet», «Før og etter» (the number of stopped attempts) and the «rigget»
   answer. Update the deck too: the «Kari», «Beviset» and «Før og etter» slides and the screenshots.
-- Count the Tabs once in full screen after Cmd+2. Then reload tab 2, and never click in it. The Tab
-  counts in the script start from the top of the page, and each Tab or click moves the focus. Reload
-  tab 2 right before each run.
+- Reload tab 2 right before each run, and never click in it. Each Tab or click moves the focus, and
+  the number of Tabs to «Intervju» depends on where the browser puts the focus.
 - In full screen, press Cmd+2, then Cmd+1, then →. The deck must stay full screen, with no browser
   bar, and → must move to the next slide.
 - Open the PDF of the deck once. Check that it holds the slides you need for F3.
