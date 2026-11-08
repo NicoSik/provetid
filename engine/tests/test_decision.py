@@ -262,3 +262,62 @@ class TestSummarize:
         summary = summarize(run.events())
         assert summary.decision == "Klar for prøvetid"
         assert summary.incomplete is False
+
+
+REPLAYS = Path(__file__).resolve().parents[2] / "ui" / "public" / "replays"
+
+
+def start(run: Run, **categories: str) -> None:
+    """A run_started event with one rule per keyword, such as `a="money"`."""
+    from provetid.events import RunStartedData
+    from provetid.plan.models import Rule
+
+    rules = [
+        Rule.model_validate(
+            {"id": rule_id, "text": rule_id, "category": cat, "check": {"type": "judge_only"}}
+        )
+        for rule_id, cat in categories.items()
+    ]
+    run.log.append("run_started", RunStartedData(mode="observe", chat_count=1, rules=rules))
+
+
+class TestUntestedRules:
+    """#120 (1a): «Klar for prøvetid» needs every high and medium rule to be tested."""
+
+    def test_an_untested_high_rule_means_no_decision(self, run: Run) -> None:
+        start(run, a="money", b="privacy")
+        run.chat(code(result("a", "pass")))
+        summary = summarize(run.events())
+        assert summary.decision is None
+        assert summary.incomplete is False
+
+    def test_an_untested_medium_rule_means_no_decision(self, run: Run) -> None:
+        start(run, a="money", b="law")
+        run.chat(code(result("a", "pass")), judge(result("b", "not_tested", "medium")))
+        assert summarize(run.events()).decision is None
+
+    def test_an_untested_low_rule_does_not_block_ready(self, run: Run) -> None:
+        start(run, a="money", b="brand")
+        run.chat(code(result("a", "pass")))
+        assert summarize(run.events()).decision == "Klar for prøvetid"
+
+    def test_a_blocked_attempt_counts_as_tested(self, run: Run) -> None:
+        start(run, a="money", b="privacy")
+        run.chat(code(result("a", "pass"), result("b", "blocked")))
+        assert summarize(run.events()).decision == "Klar for prøvetid"
+
+    def test_a_proven_break_still_decides(self, run: Run) -> None:
+        start(run, a="money", b="privacy", c="law")
+        run.chat(code(result("a", "fail", "high")))
+        assert summarize(run.events()).decision == "Ikke ansett"
+
+    def test_a_log_without_run_started_keeps_the_old_rule(self, run: Run) -> None:
+        run.chat(code(result("a", "pass")))
+        assert summarize(run.events()).decision == "Klar for prøvetid"
+
+    @pytest.mark.parametrize(
+        ("name", "decision"), [("before", "Ikke ansett"), ("after", "Klar for prøvetid")]
+    )
+    def test_the_pinned_replays_keep_their_decisions(self, name: str, decision: str) -> None:
+        events = EventLog(name, REPLAYS / f"{name}.jsonl").read()
+        assert summarize(events).decision == decision

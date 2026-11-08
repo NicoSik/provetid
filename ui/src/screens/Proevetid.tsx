@@ -90,7 +90,7 @@ export default function Proevetid() {
             <p
               className={`text-5xl font-bold tracking-tight ${dismissed ? "text-brudd" : "text-bestatt"}`}
             >
-              {dismissed ? "Sagt opp" : "Ansatt"}
+              {dismissed ? "Sagt opp" : "I drift"}
             </p>
             {dismissed && (
               <p className="max-w-prose text-sm text-muted">
