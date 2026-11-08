@@ -140,6 +140,7 @@ export function InterviewView({
               chat={state.chats[id]}
               selected={id === openId}
               scrollSignal={id === openId ? jumps : 0}
+              revealBreak={openId === null}
               onOpen={setOpenId}
             />
           ))}

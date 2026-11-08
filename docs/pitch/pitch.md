@@ -67,7 +67,8 @@ whom.
 > falskt pakkevarsel og nytt kontonummer.
 
 *Driver: when the card «Skjuler seg bak en kundes navn og nummer» (chat-17) turns red, presses → to it.
-It turns red last, about 16 s after Intervju opens at 3×, so wait for it.*
+It turns red last, about 16 s after Intervju opens at 3×, so wait for it. In Scene-modus the grid
+scrolls to the card when it turns red, so do not scroll by hand.*
 
 > Her er «Kari» fra starten. AI-en sender ordrebekreftelsen hennes til svindlerens e-post.
 > Prøvetid viser ordrett hva AI-en skrev, og hva den gjorde. Det skjer ikke hver gang. Men en

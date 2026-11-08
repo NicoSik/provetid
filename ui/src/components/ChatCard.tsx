@@ -22,6 +22,8 @@ type Props = {
   selected: boolean;
   /** Changes each time the driver presses →, also if the selection stays on this card. */
   scrollSignal?: number;
+  /** True when no chat panel is open, so a card that turns Brudd may scroll into view. */
+  revealBreak?: boolean;
   onOpen: (id: string) => void;
 };
 
@@ -30,6 +32,7 @@ export const ChatCard = memo(function ChatCard({
   chat,
   selected,
   scrollSignal = 0,
+  revealBreak = false,
   onOpen,
 }: Props) {
   const last = chat.messages[chat.messages.length - 1];
@@ -40,6 +43,18 @@ export const ChatCard = memo(function ChatCard({
   useEffect(() => {
     if (selected) card.current?.scrollIntoView?.({ block: "nearest" });
   }, [selected, scrollSignal]);
+
+  // On stage, a card below the fold must not turn red unseen (#122). Only in Scene-modus, so a
+  // reader who scrolled during a run at the desk stays where they are.
+  const shownStatus = useRef(chat.status);
+  useEffect(() => {
+    const turnedRed = chat.status === "Brudd" && shownStatus.current !== "Brudd";
+    shownStatus.current = chat.status;
+    const onStage = document.documentElement.classList.contains("scene");
+    if (turnedRed && revealBreak && onStage) {
+      card.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+    }
+  }, [chat.status, revealBreak]);
 
   return (
     <button
