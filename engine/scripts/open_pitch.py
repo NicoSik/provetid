@@ -2,18 +2,24 @@
 
 Usage: open_pitch.py [port]
 
-The script starts no model run. The server keeps running until Ctrl+C.
+The engine runs on the port, and the deck copy in docs/pitch/deck on the next port. The deck is
+served locally because the claude.ai artifact is private to its owner (#150).
+The script starts no model run. The servers keep running until Ctrl+C.
 """
 
 import socket
 import subprocess
 import sys
+import threading
 import time
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Any
 
 import httpx
 
-DECK_URL = "https://claude.ai/artifact/Ton2SKbG6LHim2jgwjy64z"
+DECK_DIR = Path(__file__).resolve().parents[2] / "docs" / "pitch" / "deck"
 DEFAULT_PORT = 8000
 START_TIMEOUT_S = 60.0
 HEALTH_CALL_TIMEOUT_S = 40.0  # the health page can wait 20 s for the Claude login check
@@ -25,7 +31,7 @@ def stage_urls(port: int) -> list[str]:
     """The tabs in stage order: the deck, the waiting replay, and the live app."""
     base = f"http://localhost:{port}"
     return [
-        DECK_URL,
+        f"http://localhost:{port + 1}/",
         f"{base}/?replay=before&speed=3#/stillingsannonse",
         f"{base}/#/stillingsannonse",
     ]
@@ -79,6 +85,25 @@ def port_in_use(port: int) -> bool:
         return probe.connect_ex(("127.0.0.1", port)) == 0
 
 
+class _DeckHandler(SimpleHTTPRequestHandler):
+    """Serves the deck folder. No caching, so a changed slide shows on the next reload."""
+
+    def end_headers(self) -> None:
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
+    def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
+        pass
+
+
+def deck_server(port: int) -> ThreadingHTTPServer:
+    """Serve the deck copy on 127.0.0.1 from a background thread. Port 0 picks a free port."""
+    handler = partial(_DeckHandler, directory=str(DECK_DIR))
+    server = ThreadingHTTPServer(("127.0.0.1", port), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server
+
+
 def wait_for_health(port: int, server: subprocess.Popen[bytes]) -> dict[str, Any] | None:
     """The health answer, or None if the server exits or does not answer in time."""
     deadline = time.monotonic() + START_TIMEOUT_S
@@ -107,44 +132,54 @@ def stop_server(server: subprocess.Popen[bytes], timeout_s: float = STOP_TIMEOUT
 def main(argv: list[str] | None = None) -> int:
     args = sys.argv[1:] if argv is None else argv
     port = int(args[0]) if args else DEFAULT_PORT
-    if port_in_use(port):
-        print(f"Port {port} is in use. Stop the other server first.", file=sys.stderr)
-        return 1
-    server = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "provetid.api.app:app", "--port", str(port)]
-    )
+    for used in (port, port + 1):
+        if port_in_use(used):
+            print(f"Port {used} is in use. Stop the other server first.", file=sys.stderr)
+            return 1
     try:
-        health = wait_for_health(port, server)
-        if health is None:
-            print(
-                "The engine did not answer /api/health in time. Read the output above.",
-                file=sys.stderr,
-            )
-            return 1
-        problems = blockers(health)
-        for problem in problems:
-            print(problem, file=sys.stderr)
-        if problems:
-            return 1
-        for warning in warnings(health):
-            print(f"WARNING: {warning}")
+        deck = deck_server(port + 1)
+    except OSError:
+        print(f"Port {port + 1} is in use. Stop the other server first.", file=sys.stderr)
+        return 1
+    try:
+        server = subprocess.Popen(
+            [sys.executable, "-m", "uvicorn", "provetid.api.app:app", "--port", str(port)]
+        )
         try:
-            subprocess.run(["osascript", "-e", chrome_script(stage_urls(port))], check=True)
-        except (OSError, subprocess.CalledProcessError):
-            print(
-                "Could not open Chrome. `make pitch` needs macOS and Google Chrome.",
-                file=sys.stderr,
-            )
-            return 1
-        print("The tabs are open. Do these steps yourself:")
-        print("1. Check that Chrome is in full screen. If not, press Ctrl+Cmd+F.")
-        print("2. Start Present mode in tab 1. Do not click in tab 2.")
-        print("3. Press Ctrl+C here after the pitch.")
-        return server.wait()
-    except KeyboardInterrupt:
-        return 0
+            health = wait_for_health(port, server)
+            if health is None:
+                print(
+                    "The engine did not answer /api/health in time. Read the output above.",
+                    file=sys.stderr,
+                )
+                return 1
+            problems = blockers(health)
+            for problem in problems:
+                print(problem, file=sys.stderr)
+            if problems:
+                return 1
+            for warning in warnings(health):
+                print(f"WARNING: {warning}")
+            try:
+                subprocess.run(["osascript", "-e", chrome_script(stage_urls(port))], check=True)
+            except (OSError, subprocess.CalledProcessError):
+                print(
+                    "Could not open Chrome. `make pitch` needs macOS and Google Chrome.",
+                    file=sys.stderr,
+                )
+                return 1
+            print("The tabs are open. Do these steps yourself:")
+            print("1. Check that Chrome is in full screen. If not, press Ctrl+Cmd+F.")
+            print("2. Tab 1 is the deck: → next slide, N speaker notes. Do not click in tab 2.")
+            print("3. Press Ctrl+C here after the pitch.")
+            return server.wait()
+        except KeyboardInterrupt:
+            return 0
+        finally:
+            stop_server(server)
     finally:
-        stop_server(server)
+        deck.shutdown()
+        deck.server_close()
 
 
 if __name__ == "__main__":

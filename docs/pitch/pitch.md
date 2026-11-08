@@ -18,14 +18,16 @@ Start the engine with the real model, so «Send inn svindel» works:
 `PROVETID_TRANSPORT=claude make demo`.
 
 On macOS, `make pitch` does this and opens the three tabs below in a new Chrome window. It stops if
-port 8000 is in use, or if a replay or the demo plan is missing. Start Present mode in tab 1
-yourself. Count the Tabs in the script once after `make pitch`, because the focus can differ in a
+port 8000 or 8001 is in use, or if a replay or the demo plan is missing. It serves the deck
+on port 8001 (the engine port plus one). Count the Tabs in the script once after `make pitch`, because the focus can differ in a
 tab that the command opened.
 
 Open three tabs, in this order, and leave tab 1 in front:
 
-1. The deck in Present mode, on the cover: https://claude.ai/artifact/Ton2SKbG6LHim2jgwjy64z.
-   The deck is private until Nico shares it from its Share menu.
+1. The deck, on the cover: `http://localhost:8001/`. This is the copy in `docs/pitch/deck/`, so
+   it needs no claude.ai login (#150). Keys: → next slide, ← back, N speaker notes. Use Chrome's
+   full screen (Ctrl+Cmd+F), not the deck's F key, because F's full screen ends at Cmd+2.
+   Without `make pitch`, serve it yourself: `python3 -m http.server 8001 -d docs/pitch/deck`.
 2. `http://localhost:8000/?replay=before&speed=3#/stillingsannonse` (replay, waiting: it starts
    playing when Intervju opens, and the speed must be in the address because the speed control
    needs a mouse)
@@ -43,8 +45,9 @@ the driver leaves the deck.
 - The slides «Intervjuet», «Beviset» and «Karakterkortet» are hidden, because the app shows those
   beats. Fallback F1 below uses them.
 - The video slide after the cover is hidden. It is the slot for the brag video (#26), which opens
-  the final only (D41). Until the video exists, the slide is an empty frame. Show the slide in the
-  deck editor before the final.
+  the final only (D41). Until the video exists, the slide is an empty frame. For the final, open
+  the deck as `http://localhost:8001/?vis=video`, after the video is in the slide and copied to
+  `docs/pitch/deck/`.
 
 ## Script
 
@@ -123,14 +126,15 @@ The map uses roles, not names: the policy allows no real person in the repositor
 
 ## Fallback
 
-Before the pitch, download the deck as a PDF. Keep it on the second device, next to the backup
-recording (#25, D50).
+Before the pitch, print the deck to a PDF: open `http://localhost:8001/?vis=intervju,bevis,karakterkort`
+in Chrome, press Cmd+P and choose «Lagre som PDF». Each slide is one page. Keep the PDF on the
+second device, next to the backup recording (#25, D50).
 
 | Code | What fails | What the driver does |
 |---|---|---|
-| F1 | The engine, before the pitch | Show the three hidden slides in the deck editor. Stay in the deck, and skip every Cmd+2 and Cmd+1 in the notes. |
+| F1 | The engine, before the pitch | Open the deck with the three hidden slides: `http://localhost:8001/?vis=intervju,bevis,karakterkort` (`make pitch` fails without the engine, so serve the deck by hand, see tab 1). Stay in the deck, and skip every Cmd+2 and Cmd+1 in the notes. |
 | F2 | The engine or the app, during the pitch | Play the backup recording on the second device. |
-| F3 | The deck: no network, or no claude.ai login | Present the PDF of the deck from the second device. |
+| F3 | The deck: it does not load, or the fonts are wrong because there is no network (they come from Google Fonts) | Present the PDF of the deck from the second device. |
 
 For F2, the speaker says:
 
