@@ -47,7 +47,10 @@ function ResultLine({ result, rule }: { result: RuleResult; rule: Rule | undefin
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm font-medium text-ink">
           {rule ? (
-            rule.text
+            <>
+              <span className="mr-2 text-muted tabular-nums">{rule.id}</span>
+              <span>{rule.text}</span>
+            </>
           ) : (
             <>
               <span data-dev>{result.rule_id}</span>

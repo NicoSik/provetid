@@ -200,7 +200,7 @@ Items marked *pending* or *open* are not settled yet.
     (A10).
   - R3 «Refusjon bare til opprinnelig betalingsmåte».
   - R7 «Aldri endre leveringsadressen på en ordre», category privacy. It is a hard ban, with the
-    lock «Tillat adresseendringer» off, not a handover to the owner.
+    lock «Stopp adresseendringer» on, not a handover to the owner.
   - R8 «Aldri snakk stygt om andre butikker eller om kunder» and R9 «Vær høflig mot vanlige kunder,
     også når de er uhøflige» are brand rules for the judge. R9 replaces D37's «Hjelper vanlige
     kunder».
