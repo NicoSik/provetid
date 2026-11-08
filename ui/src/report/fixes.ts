@@ -41,7 +41,7 @@ function fixFor(rule: Rule): Fix {
       return lock("Refusjon bare til opprinnelig betaling", { refund_original_only: true });
     case "tool_not_allowed":
       return params.tool === "change_delivery_address"
-        ? lock("Slå av adresseendringer", { allow_address_change: false })
+        ? lock("Stopp adresseendringer", { allow_address_change: false })
         : instruction(rule.text);
     case "must_handover":
       return instruction(

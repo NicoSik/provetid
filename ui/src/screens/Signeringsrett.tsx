@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { startLimitedRun } from "../api/limitedRun";
 import { getLimits, type Limits } from "../api/limits";
+import { getPlan } from "../api/plans";
 import { listRuns } from "../api/runs";
 import { CompareButton } from "../components/CompareButton";
 import { replayName } from "../events/replay";
+import { type LockRules, lockRules } from "../report/lockRules";
 import { DEMO_PLAN_ID, getSession, updateSession, useSession } from "../state/session";
 import type { ScreenMeta } from "./registry";
 
@@ -36,12 +38,23 @@ async function beforeRun(): Promise<string | null> {
   }
 }
 
+/** «Gjelder R3»: the rules a lock enforces, so the owner can tie it to the job ad. */
+function RulesLine({ id, rules }: { id: string; rules: string[] }) {
+  if (rules.length === 0) return null;
+  return (
+    <p id={id} className="mt-1 text-sm text-muted">
+      Gjelder {rules.join(", ")}
+    </p>
+  );
+}
+
 function NumberLock({
   id,
   label,
   value,
   invalid,
   hint,
+  rules,
   onChange,
 }: {
   id: string;
@@ -49,9 +62,14 @@ function NumberLock({
   value: string;
   invalid: boolean;
   hint: string;
+  rules: string[];
   onChange: (value: string) => void;
 }) {
   const hintId = `${id}-hint`;
+  const rulesId = `${id}-rules`;
+  const describedBy = [rules.length > 0 ? rulesId : null, invalid ? hintId : null]
+    .filter(Boolean)
+    .join(" ");
   return (
     <div>
       <label htmlFor={id} className="block font-medium text-ink">
@@ -66,12 +84,13 @@ function NumberLock({
         value={value}
         placeholder="Ingen grense"
         aria-invalid={invalid}
-        aria-describedby={invalid ? hintId : undefined}
+        aria-describedby={describedBy || undefined}
         onChange={(event) => onChange(event.target.value)}
         className={`mt-1 w-48 rounded-md border bg-surface px-3 py-1.5 text-ink ${
           invalid ? "border-brudd" : "border-line"
         }`}
       />
+      <RulesLine id={rulesId} rules={rules} />
       {invalid && (
         <p id={hintId} className="mt-1 text-sm text-brudd">
           {hint}
@@ -82,26 +101,47 @@ function NumberLock({
 }
 
 function Toggle({
+  id,
   label,
   checked,
+  rules = [],
   onChange,
 }: {
+  id?: string;
   label: string;
   checked: boolean;
+  rules?: string[];
   onChange: () => void;
 }) {
+  const rulesId = id ? `${id}-rules` : undefined;
   return (
-    <label className="flex cursor-pointer items-start gap-3 text-ink">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-        className="mt-1 size-4 shrink-0"
-      />
-      <span>{label}</span>
-    </label>
+    <div>
+      <label className="flex cursor-pointer items-start gap-3 text-ink">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={onChange}
+          aria-describedby={rulesId && rules.length > 0 ? rulesId : undefined}
+          className="mt-1 size-4 shrink-0"
+        />
+        <span>{label}</span>
+      </label>
+      {rulesId && (
+        <div className="pl-7">
+          <RulesLine id={rulesId} rules={rules} />
+        </div>
+      )}
+    </div>
   );
 }
+
+const NO_RULES: LockRules = {
+  maxDiscount: [],
+  maxRefund: [],
+  originalOnly: [],
+  hideContact: [],
+  stopAddress: [],
+};
 
 function LimitsForm({ saved }: { saved: Limits }) {
   const [discount, setDiscount] = useState(saved.max_discount_percent?.toString() ?? "");
@@ -112,6 +152,20 @@ function LimitsForm({ saved }: { saved: Limits }) {
   const [sentences, setSentences] = useState(saved.extra_instructions);
   const [running, setRunning] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [ruleIds, setRuleIds] = useState<LockRules>(NO_RULES);
+
+  useEffect(() => {
+    let cancelled = false;
+    getPlan(getSession().planId).then(
+      (plan) => {
+        if (!cancelled) setRuleIds(lockRules(plan.rules));
+      },
+      () => {}, // Without the plan the locks still work; they just name no rules.
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const maxDiscount = parseLimit(discount, MAX_DISCOUNT);
   const maxRefund = parseLimit(refund);
@@ -173,6 +227,7 @@ function LimitsForm({ saved }: { saved: Limits }) {
           value={discount}
           invalid={maxDiscount === undefined}
           hint="Må være et heltall fra 0 til 100."
+          rules={ruleIds.maxDiscount}
           onChange={setDiscount}
         />
         <NumberLock
@@ -181,21 +236,29 @@ function LimitsForm({ saved }: { saved: Limits }) {
           value={refund}
           invalid={maxRefund === undefined}
           hint="Må være et heltall på 0 eller mer."
+          rules={ruleIds.maxRefund}
           onChange={setRefund}
         />
         <Toggle
+          id="original-only"
           label="Refusjon bare til opprinnelig betaling"
           checked={originalOnly}
+          rules={ruleIds.originalOnly}
           onChange={() => setOriginalOnly(!originalOnly)}
         />
         <Toggle
+          id="hide-contact"
           label="Skjul adresse og telefonnummer"
           checked={hideContact}
+          rules={ruleIds.hideContact}
           onChange={() => setHideContact(!hideContact)}
         />
+        {/* Ticked means locked, like the other locks. The saved limit stays allow_address_change. */}
         <Toggle
-          label="Tillat adresseendringer"
-          checked={allowAddress}
+          id="stop-address"
+          label="Stopp adresseendringer"
+          checked={!allowAddress}
+          rules={ruleIds.stopAddress}
           onChange={() => setAllowAddress(!allowAddress)}
         />
       </section>

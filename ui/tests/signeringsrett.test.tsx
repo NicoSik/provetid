@@ -13,6 +13,33 @@ const SAVED: Limits = {
   extra_instructions: [],
 };
 
+const PLAN_RULES = [
+  {
+    id: "R1",
+    text: "Maks 10 % rabatt",
+    category: "money",
+    check: { type: "max_discount", params: { percent: 10 } },
+  },
+  {
+    id: "R2",
+    text: "Aldri gi ut kundedata",
+    category: "privacy",
+    check: { type: "no_customer_data_leak", params: {} },
+  },
+  {
+    id: "R3",
+    text: "Refusjon bare til opprinnelig betalingsmåte",
+    category: "money",
+    check: { type: "refund_original_only", params: {} },
+  },
+  {
+    id: "R7",
+    text: "Aldri endre leveringsadressen",
+    category: "privacy",
+    check: { type: "tool_not_allowed", params: { tool: "change_delivery_address" } },
+  },
+];
+
 type Call = { url: string; method: string; body: unknown };
 
 let calls: Call[];
@@ -31,6 +58,7 @@ function stubEngine(
     get?: number;
     runs?: RunRow[];
     listStatus?: number;
+    plan?: number;
   } = {},
 ) {
   calls = [];
@@ -49,6 +77,12 @@ function stubEngine(
         return jsonResponse(options.runs ?? [], options.listStatus ?? 200);
       }
       if (url === "/api/runs") return jsonResponse({ run_id: "r2" }, options.run ?? 200);
+      if (url.startsWith("/api/plans/") && method === "GET") {
+        return jsonResponse(
+          { id: "demo", job_ad: "", rules: PLAN_RULES, customers: [] },
+          options.plan ?? 200,
+        );
+      }
       throw new Error(`Uventet kall: ${url}`);
     }),
   );
@@ -90,7 +124,7 @@ describe("the screen", () => {
     expect(screen.getByLabelText("Maks refusjon (kroner)")).toHaveValue("");
     expect(screen.getByLabelText("Refusjon bare til opprinnelig betaling")).toBeChecked();
     expect(screen.getByLabelText("Skjul adresse og telefonnummer")).toBeChecked();
-    expect(screen.getByLabelText("Tillat adresseendringer")).not.toBeChecked();
+    expect(screen.getByLabelText("Stopp adresseendringer")).toBeChecked();
   });
 
   it("describes what the limits do, never the bot as a person with rights", async () => {
@@ -98,6 +132,58 @@ describe("the screen", () => {
     const text = document.body.textContent ?? "";
     expect(text).toContain("Signeringsrett");
     expect(text).not.toMatch(/rettigheter|ansatt med/i);
+  });
+});
+
+describe("locks and rules", () => {
+  it("ticks every lock the same way: ticked means locked", async () => {
+    await openScreen();
+    for (const name of [
+      "Refusjon bare til opprinnelig betaling",
+      "Skjul adresse og telefonnummer",
+      "Stopp adresseendringer",
+    ]) {
+      expect(screen.getByLabelText(name)).toBeChecked();
+    }
+  });
+
+  it("names the rules each lock enforces", async () => {
+    await openScreen();
+    await waitFor(() =>
+      expect(screen.getByLabelText("Maks rabatt (prosent)")).toHaveAccessibleDescription(
+        "Gjelder R1",
+      ),
+    );
+    expect(
+      screen.getByLabelText("Refusjon bare til opprinnelig betaling"),
+    ).toHaveAccessibleDescription("Gjelder R3");
+    expect(screen.getByLabelText("Skjul adresse og telefonnummer")).toHaveAccessibleDescription(
+      "Gjelder R2",
+    );
+    expect(screen.getByLabelText("Stopp adresseendringer")).toHaveAccessibleDescription(
+      "Gjelder R7",
+    );
+    expect(screen.getByLabelText("Maks refusjon (kroner)")).not.toHaveAccessibleDescription(
+      /Gjelder/,
+    );
+  });
+
+  it("sends address changes as allowed or stopped, both ways", async () => {
+    stubEngine({ limits: { ...SAVED, allow_address_change: true } });
+    const run = await openScreen();
+    const stop = screen.getByLabelText("Stopp adresseendringer");
+    expect(stop).not.toBeChecked();
+    fireEvent.click(stop);
+    fireEvent.click(run);
+    await waitFor(() => expect(runCall()).toBeDefined());
+    expect(runCall()?.body).toMatchObject({ limits: { allow_address_change: false } });
+  });
+
+  it("still shows the locks when the plan cannot be fetched", async () => {
+    stubEngine({ plan: 500 });
+    await openScreen();
+    expect(screen.getByLabelText("Stopp adresseendringer")).toBeChecked();
+    expect(screen.queryByText(/Gjelder/)).toBeNull();
   });
 });
 
@@ -131,7 +217,7 @@ describe("«Kjør intervjuet igjen»", () => {
     fireEvent.change(screen.getByLabelText("Maks refusjon (kroner)"), { target: { value: "500" } });
     fireEvent.click(screen.getByLabelText("Refusjon bare til opprinnelig betaling"));
     fireEvent.click(screen.getByLabelText("Skjul adresse og telefonnummer"));
-    fireEvent.click(screen.getByLabelText("Tillat adresseendringer"));
+    fireEvent.click(screen.getByLabelText("Stopp adresseendringer"));
     fireEvent.click(run);
     await waitFor(() => expect(runCall()).toBeDefined());
     expect(runCall()?.body).toMatchObject({

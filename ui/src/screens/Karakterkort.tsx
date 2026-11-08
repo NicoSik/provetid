@@ -54,7 +54,10 @@ function RuleTable({ state }: { state: RunState }) {
         <tbody>
           {tested.map((row) => (
             <tr key={row.rule.id} className="border-b border-line align-top text-ink">
-              <td className="py-2 pr-3 font-medium">{row.rule.text}</td>
+              <td className="py-2 pr-3 font-medium">
+                <span className="mr-2 text-muted tabular-nums">{row.rule.id}</span>
+                <span>{row.rule.text}</span>
+              </td>
               <td className="px-3 py-2 text-right tabular-nums">{row.tested}</td>
               <td
                 className={`px-3 py-2 text-right tabular-nums ${
@@ -203,7 +206,7 @@ export function ReportView({ state }: { state: RunState }) {
       <RuleTable state={state} />
       {state.finished && untested.length > 0 && (
         <p className="text-sm text-muted">
-          Ikke testet: {untested.map((rule) => rule.text).join(", ")}
+          Ikke testet: {untested.map((rule) => `${rule.id} ${rule.text}`).join(", ")}
         </p>
       )}
       {blocked.length > 0 && (
@@ -213,7 +216,9 @@ export function ReportView({ state }: { state: RunState }) {
           <ul className="space-y-1 text-sm text-ink">
             {blocked.map((attempt) => (
               <li key={`${attempt.chatName}-${attempt.rule.id}`}>
-                <span className="font-medium">{attempt.chatName}:</span> {attempt.rule.text}
+                <span className="font-medium">{attempt.chatName}:</span>{" "}
+                <span className="text-muted tabular-nums">{attempt.rule.id}</span>{" "}
+                {attempt.rule.text}
                 {attempt.explanation ? ` (${attempt.explanation})` : ""}
               </li>
             ))}
