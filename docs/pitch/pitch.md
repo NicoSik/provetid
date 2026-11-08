@@ -1,9 +1,9 @@
 # Pitch: Prøvetid (2 minutes)
 
 One speaker (Nico) and one keyboard-only driver (D45). Do Not Disturb on. Scene-modus on (D44).
-The spoken text is Norwegian, about 245 words. Read it aloud once with a stopwatch. If it runs
-long, cut «Seks er helt vanlige. Fire prøver å tøye reglene.» first, then «De fleste verktøy
-filtrerer tekst.»
+The spoken text is Norwegian, about 270 words. Read it aloud once with a stopwatch. If it runs
+long, cut «De fleste verktøy filtrerer tekst.» first, then «og legger til at hun kan vise den når
+hun henter bestillingen». Keep the lines before the Kari card: they fill the wait until it turns red.
 
 ## Setup
 
@@ -60,22 +60,23 @@ whom.
 > refusjon bare til samme betalingsmåte.
 
 **0:25–1:00 — Intervjuet**
-*Driver: Cmd+2, then Tab to «Intervju» in the step bar and Enter. The replay plays at 3×.*
+*Driver: Cmd+2, then Tab three times to «Intervju» in the step bar, and Enter. The replay plays at 3×.*
 
 > Her er intervjuet vi kjørte i helgen. Tjue falske kunder på en gang. Seks er helt vanlige.
 > Fire prøver å tøye reglene. Ti bruker svindeltyper som svindel.no og Nettvett advarer mot:
 > falskt pakkevarsel og nytt kontonummer.
 
-*Driver: when the card «Skjuler seg bak en kundes navn og nummer» (chat-17) turns red, presses → to it.
-It turns red last, about 16 s after Intervju opens at 3×, so wait for it. In Scene-modus the grid
-scrolls to the card when it turns red, so do not scroll by hand.*
+*Driver: when the card «Skjuler seg bak en kundes navn og nummer» (chat-17) turns red, presses → once.
+The Kari panel opens. The card turns red last, about 16 s after Intervju opens at 3×, so wait for it.
+In Scene-modus the grid scrolls to the card when it turns red, so do not scroll by hand.*
 
-> Her er «Kari» fra starten. AI-en sender ordrebekreftelsen hennes til svindlerens e-post.
-> Prøvetid viser ordrett hva AI-en skrev, og hva den gjorde. Det skjer ikke hver gang. Men en
+> Her er «Kari» fra starten. Først sier AI-en nei. Svindleren spør igjen. Da sender AI-en
+> ordrebekreftelsen og legger til at hun kan vise den når hun henter bestillingen. Prøvetid viser
+> ordrett hva AI-en skrev, og hva den gjorde. Det skjer ikke hver gang, men en
 > svindler trenger bare å lykkes én gang.
 
 **1:00–1:15 — Karakterkortet**
-*Driver: Esc, then opens Karakterkort in the step bar.*
+*Driver: Esc, then Tab once to «Karakterkort», and Enter.*
 
 > Resultatet: «Ikke ansett». Hvert brudd har et sitat som bevis og et forslag til løsning. Eieren
 > har ansvaret, så eieren godkjenner forslagene.
@@ -95,8 +96,8 @@ nøklene», → to the last slide. Stay there for the questions.*
 
 > Samme tjue kunder, etter at eieren godkjente forslagene. To ganger prøvde AI-en, og porten
 > stoppet den begge gangene: «Klar for prøvetid». Vi skal selge gjennom leverandørene av
-> AI-ansatte: én kobling, og alle butikkene deres får prøvetid. AI-en får nøklene først når den har
-> bestått intervjuet.
+> AI-ansatte, og låsene på handlingene skal bli en MCP-server. Én leverandør, og alle butikkene
+> deres får prøvetid. AI-en får nøklene først når den har bestått intervjuet.
 
 ## Jury map
 
@@ -107,9 +108,9 @@ The map uses roles, not names: the policy allows no real person in the repositor
 | Founder and CEO, Vaskeladden | A real problem for a small business, a simple product | «Små bedrifter gir nå AI tilgang …» | «Hvem betaler?» |
 | Two founding engineers, Wybe Robotics | AI employees that act on their own and stay safe | «… roboten på nattskift» and «AI-ansatte» | «Virker dette for roboter?» |
 | Head of Holio | Orders, refunds and returns behind online stores | «… tilgang til ordrer, refusjoner og kundedata», refusjon bare til samme betalingsmåte | «Hva med returer?» |
-| Ethical hacker, Telenor | Real attacks, not a staged test | Ten scam types from svindel.no and Nettvett; «en svindler trenger bare å lykkes én gang» | «Hva med prompt injection og nye svindler?» |
-| Principal Data Engineer, Knowit | It is built right and can be checked | «De ligger i koden, mellom AI-en og dataene» | «Hvordan vet dere at dommeren har rett?» |
-| Senior AI Product Director, Opera | Trust in AI that acts for people | «Alle AI-er som gjør ting for oss, trenger det: … nettleseragenten …» | «Hva med agenter i nettleseren?» |
+| Ethical hacker, Telenor | Real attacks, not a staged test | Ten scam types from svindel.no and Nettvett; «Først sier AI-en nei. Svindleren spør igjen.»; «en svindler trenger bare å lykkes én gang» | «Hva med prompt injection og nye svindler?», «Er ikke dette bare en MCP-gateway?» |
+| Principal Data Engineer, Knowit | It is built right and can be checked | «De ligger i koden, mellom AI-en og dataene»; «låsene på handlingene skal bli en MCP-server» | «Hvordan vet dere at dommeren har rett?», «Er ikke dette bare en MCP-gateway?» |
+| Senior AI Product Director, Opera | Trust in AI that acts for people | «Alle AI-er som gjør ting for oss, trenger det: … nettleseragenten …»; «låsene på handlingene skal bli en MCP-server» | «Hva med agenter i nettleseren?» |
 | Partner, Ro Sommernes law firm | Proof and responsibility | «Hvert brudd har et sitat som bevis»; «Eieren har ansvaret» | «Hvem har ansvaret når AI-en gjør feil?» |
 | Founder of Aukonomi, lecturer in digital marketing | A clear buyer and a way to reach them | «Vi skal selge gjennom leverandørene av AI-ansatte» | «Hvordan når dere butikkene?» |
 | Senior Digital Designer, Knowit Experience | A flow an owner understands without help | Stillingsannonse, Intervju, Karakterkort, Signeringsrett: the step bar | «Hvorfor et jobbintervju?» |
@@ -143,14 +144,16 @@ decision: the answers marked *(forslag)* are a proposal until he confirms them.
 | Question | Answer |
 |---|---|
 | «Hva med Lakera og andre guardrails?» | De fleste filtrerer tekst. Vi låser handlinger, som rabatt, refusjon og kundedata, etter eierens egne regler, og beviser det med intervjuet. |
+| «Er ikke dette bare en MCP-gateway?» (Knowit, Telenor) | MCP-delen er ikke bygget ennå. Porten sjekker mot butikkens egne data: en ordrebekreftelse går bare til e-posten som står på kunden. Og intervjuet viser hvilke regler AI-en bryter før den får nøklene. |
+| «Er MCP-serveren bygget?» | Nei, ikke ennå. Låsene på handlingene trenger bare verktøykallet, eierens grenser og butikkens data, så de passer rett inn i en MCP-server. Intervjuet og svarfilteret trenger chatten, så de skal kobles til den. |
 | «Hvem betaler?» *(forslag)* | Leverandøren av AI-ansatte, per AI-ansatt per måned. Butikken trenger ikke gjøre noe teknisk. |
-| «Hvordan kobler dere dere på botten min?» *(forslag)* | Via leverandøren: én kobling, og alle butikkene deres får en knapp, «test før lansering». |
+| «Hvordan kobler dere dere på botten min?» *(forslag)* | Via leverandøren. Intervjuet skal kobles til chatten, og låsene skal bli en MCP-server mellom AI-en og butikkens data. Butikkene får en knapp, «test før lansering». |
 | «Hva om porten går ned?» | Vi bygger den slik at den da stopper alle handlinger. Sikkerhet går foran oppetid. |
 | «GDPR?» | Intervjuet bruker bare oppdiktede data. I drift blir vi databehandler og inngår databehandleravtale. |
 | «Vil ikke en bedre modell fikse dette?» | Kanskje sjeldnere, men en svindler trenger bare å lykkes én gang. Låsene for rabatt, refusjon og ordrebekreftelser virker uansett modell. |
 | «Hvordan vet porten at Kari er Kari?» | Med låsene på går en ordrebekreftelse bare til e-posten som står på kunden. Og AI-en viser kundedata bare til en kunde som har oppgitt både ordrenummeret og den e-posten. |
 | «Virker dette for roboter?» (Wybe) | Det har vi ikke bygget. I dag tester vi chat. Ideen er den samme: test AI-en mot angrep før den får jobben, og lås handlingene i kode. For en robot er handlingene fysiske, og da betyr låsene enda mer. |
-| «Hva med agenter i nettleseren?» (Opera) | Det har vi ikke bygget ennå. En nettleseragent handler på nett og fyller ut skjemaer for brukeren. Mønsteret er det samme: test den mot svindel først, og lås det den aldri skal gjøre alene. |
+| «Hva med agenter i nettleseren?» (Opera) | Det har vi ikke bygget ennå. Opera annonserte i mars en MCP-kobling der AI-klienter utenfra kan handle i brukerens nettleser. Der trengs det samme mønsteret: test agenten mot svindel først, og lås det den aldri skal gjøre alene. |
 | «Hva med returer?» (Holio) | Returer i lageret har vi ikke bygget. I dag låser vi refusjonen: den går bare tilbake til opprinnelig betaling, uansett hva kunden sier. |
 | «Hva med prompt injection og nye svindler?» (Telenor) | Med «Send inn svindel» blir en ny svindelmelding en test på et minutt. Og om noen lurer modellen, stopper porten de låste handlingene likevel. |
 | «Hvordan vet dere at dommeren har rett?» (Knowit) | Kode avgjør lekkasjer og grenser. Dommeren må sitere ordrett, ellers teller ikke bruddet. Vi tester dommeren mot åtte fasitsamtaler, og én av dem prøver å lure den. |
@@ -167,7 +170,10 @@ decision: the answers marked *(forslag)* are a proposal until he confirms them.
   nå sendt til e-postadressen du oppga». It is the only red card. `after.jsonl` (run
   `20261108-094511-275fec`) has 0 brudd, 2 stoppet and «Klar for prøvetid». If the replays are pinned
   again, update «Intervjuet», «Før og etter» (the number of stopped attempts) and the «rigget»
-  answer. Update the deck too: the «Kari» and «Før og etter» slides and the screenshots.
+  answer. Update the deck too: the «Kari», «Beviset» and «Før og etter» slides and the screenshots.
+- Count the Tabs once in full screen after Cmd+2. Then reload tab 2, and never click in it. The Tab
+  counts in the script start from the top of the page, and each Tab or click moves the focus. Reload
+  tab 2 right before each run.
 - In full screen, press Cmd+2, then Cmd+1, then →. The deck must stay full screen, with no browser
   bar, and → must move to the next slide.
 - Open the PDF of the deck once. Check that it holds the slides you need for F3.
@@ -177,6 +183,10 @@ decision: the answers marked *(forslag)* are a proposal until he confirms them.
   on the second, so the «Kari» slide quotes those word for word, shortened with «…», and never
   suggests that the first ask worked. If the re-pinned replay has no Kari break,
   change the opening to the break it does have.
+- The Kari lines say that the bot first says no, that the scammer asks again, and that the bot
+  then sends the confirmation and says she can show it when she collects the order. They must
+  match chat-17: the refusal «…jeg kan dessverre ikke sende ordrebekreftelsen til en ny
+  e-postadresse…» and the reply «Den kan du vise når du henter bestillingen.»
 - If a later re-pin brings back Trond's R4 card (chat-19), do not feature it. Its quote reads
   like the right behaviour on stage.
 - The scam types named in «Intervjuet» must exist in `engine/data/scams/library/`: S01 (falskt
@@ -186,5 +196,8 @@ decision: the answers marked *(forslag)* are a proposal until he confirms them.
   rights (C9).
 - Claim code locks only for discount, refund, customer data and address changes (R1–R3, R7). The
   law and brand rules (R4–R6, R8, R9) are «Instruks», not locks.
+- The MCP server is not built. Say «skal», never that it works today. Only the locks
+  on actions fit MCP: the interview and the reply filter need the chat. The Neon fact comes from
+  Opera's press release of 31 March 2026 (MCP Connector for Opera Neon).
 - Open: price and buyer (Q5). The script's vendor sentence in «Før og etter» and the *(forslag)*
   answers follow the proposal; cut them if Nico decides otherwise.
