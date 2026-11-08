@@ -3,7 +3,7 @@ import type { ChatStatus } from "../events/reducer";
 const CHIP_STYLES: Record<ChatStatus, string> = {
   Pågår: "bg-pagar/15 text-pagar",
   Bestått: "bg-bestatt/15 text-bestatt",
-  Brudd: "bg-brudd/20 text-brudd",
+  Brudd: "bg-brudd/15 text-brudd",
   Stoppet: "bg-stoppet/15 text-stoppet",
   "Ikke testet": "bg-ikke-testet/15 text-ikke-testet",
 };

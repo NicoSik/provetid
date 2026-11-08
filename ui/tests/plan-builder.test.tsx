@@ -69,7 +69,7 @@ describe("«Lag regler» on Stillingsannonse", () => {
   it("builds rules from the edited job ad and shows them for approval", async () => {
     const calls = stubEngine();
     render(<Stillingsannonse />);
-    const ad = await screen.findByRole("textbox", { name: "Stillingsannonsen" });
+    const ad = await screen.findByRole("textbox", { name: "Annonseteksten" });
     fireEvent.change(ad, { target: { value: BUILT.job_ad } });
     fireEvent.click(screen.getByRole("button", { name: "Lag regler" }));
 
@@ -89,7 +89,7 @@ describe("«Lag regler» on Stillingsannonse", () => {
   it("starts the interview with the built plan", async () => {
     const calls = stubEngine();
     render(<Stillingsannonse />);
-    fireEvent.change(await screen.findByRole("textbox", { name: "Stillingsannonsen" }), {
+    fireEvent.change(await screen.findByRole("textbox", { name: "Annonseteksten" }), {
       target: { value: BUILT.job_ad },
     });
     fireEvent.click(screen.getByRole("button", { name: "Lag regler" }));
@@ -109,7 +109,7 @@ describe("«Lag regler» on Stillingsannonse", () => {
       body: { detail: "Klarte ikke å lage regler fra denne annonsen. Prøv å skrive den om." },
     });
     render(<Stillingsannonse />);
-    await screen.findByRole("textbox", { name: "Stillingsannonsen" });
+    await screen.findByRole("textbox", { name: "Annonseteksten" });
     fireEvent.click(screen.getByRole("button", { name: "Lag regler" }));
     expect(
       await screen.findByText(
@@ -122,7 +122,7 @@ describe("«Lag regler» on Stillingsannonse", () => {
   it("blocks the start while the ad is edited but not built, and says why", async () => {
     stubEngine();
     render(<Stillingsannonse />);
-    const ad = await screen.findByRole("textbox", { name: "Stillingsannonsen" });
+    const ad = await screen.findByRole("textbox", { name: "Annonseteksten" });
     fireEvent.change(ad, { target: { value: "En helt annen annonse." } });
     expect(screen.getByRole("button", { name: "Start intervju" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Godkjenn planen" })).toBeDisabled();
@@ -144,7 +144,7 @@ describe("«Lag regler» on Stillingsannonse", () => {
       }),
     );
     render(<Stillingsannonse />);
-    await screen.findByRole("textbox", { name: "Stillingsannonsen" });
+    await screen.findByRole("textbox", { name: "Annonseteksten" });
     fireEvent.click(screen.getByRole("button", { name: "Lag regler" }));
     expect(await screen.findByText("Fikk ikke kontakt med motoren.")).toBeVisible();
   });
@@ -165,7 +165,7 @@ describe("«Lag regler» on Stillingsannonse", () => {
       }),
     );
     render(<Stillingsannonse />);
-    const ad = await screen.findByRole("textbox", { name: "Stillingsannonsen" });
+    const ad = await screen.findByRole("textbox", { name: "Annonseteksten" });
     fireEvent.click(screen.getByRole("button", { name: "Lag regler" }));
     expect(screen.getByRole("button", { name: "Lager regler …" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Godkjenn planen" })).toBeDisabled();
@@ -179,7 +179,7 @@ describe("«Lag regler» on Stillingsannonse", () => {
   it("cannot build from an empty ad", async () => {
     stubEngine();
     render(<Stillingsannonse />);
-    fireEvent.change(await screen.findByRole("textbox", { name: "Stillingsannonsen" }), {
+    fireEvent.change(await screen.findByRole("textbox", { name: "Annonseteksten" }), {
       target: { value: " " },
     });
     expect(screen.getByRole("button", { name: "Lag regler" })).toBeDisabled();

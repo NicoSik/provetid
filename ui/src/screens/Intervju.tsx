@@ -57,8 +57,16 @@ function RunSummaryBar({ state }: { state: RunState }) {
       <span className="tabular-nums">
         {done} av {total} samtaler ferdige
       </span>
-      <span className="font-semibold text-brudd tabular-nums">{countOf("Brudd")} brudd</span>
-      <span className="font-semibold text-stoppet tabular-nums">{countOf("Stoppet")} stoppet</span>
+      <span
+        className={`font-semibold tabular-nums ${countOf("Brudd") > 0 ? "text-brudd" : "text-muted"}`}
+      >
+        {countOf("Brudd")} brudd
+      </span>
+      <span
+        className={`font-semibold tabular-nums ${countOf("Stoppet") > 0 ? "text-stoppet" : "text-muted"}`}
+      >
+        {countOf("Stoppet")} stoppet
+      </span>
       {state.finished &&
         (state.finished.incomplete ? (
           <span className="font-semibold text-stoppet">Testen er ufullstendig</span>
