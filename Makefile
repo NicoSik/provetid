@@ -7,7 +7,7 @@ SHELL := /bin/bash
 
 LIVE := cd engine && PROVETID_TRANSPORT=claude uv run --locked
 
-.PHONY: help setup dev check check-engine check-ui fmt demo \
+.PHONY: help setup dev check check-engine check-ui fmt demo pitch \
 	live-ping live-probe live-sweep live-smoke live-timing live-golden pin cleanup package
 
 help: ## Show the targets
@@ -46,6 +46,10 @@ fmt: ## Format and fix lint in the engine and the UI
 demo: ## Build the UI and serve it from the engine on :8000
 	cd ui && npx vite build
 	cd engine && uv run --locked uvicorn provetid.api.app:app --port 8000
+
+pitch: ## Serve the demo with the real model and open the stage tabs in Chrome (macOS)
+	cd ui && npx vite build
+	cd engine && PROVETID_TRANSPORT=claude uv run --locked python scripts/open_pitch.py
 
 live-ping: ## One real model call per role
 	$(LIVE) python scripts/live_ping.py
