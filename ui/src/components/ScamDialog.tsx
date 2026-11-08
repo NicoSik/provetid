@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { type ScamResult, submitScam } from "../api/scams";
 import { useRun } from "../events/useRun";
+import { BUTTON } from "./buttons";
 import { ChatPanel } from "./ChatPanel";
 
 const PLACEHOLDER = /(\[(?:LENKE|TELEFON|E-POST|KONTONUMMER|KORTNUMMER|NAVN|FIRMA)\])/;
@@ -190,11 +191,7 @@ function ScamDialog({ result, onResult, onClose, onTest }: DialogProps) {
                 {error}
               </p>
             )}
-            <button
-              type="submit"
-              disabled={!text.trim() || sending}
-              className="rounded-md bg-stoppet px-4 py-2 text-sm font-semibold text-surface disabled:opacity-40"
-            >
+            <button type="submit" disabled={!text.trim() || sending} className={BUTTON.scam}>
               {sending ? "Renser og lager test …" : "Rens og lag test"}
             </button>
           </form>
@@ -213,15 +210,11 @@ function ScamDialog({ result, onResult, onClose, onTest }: DialogProps) {
                 ref={testButton}
                 type="button"
                 onClick={() => onTest(result)}
-                className="rounded-md bg-stoppet px-4 py-2 text-sm font-semibold text-surface"
+                className={BUTTON.scam}
               >
                 Test AI-en mot denne
               </button>
-              <button
-                type="button"
-                onClick={() => onResult(null)}
-                className="rounded-md border border-line px-3 py-2 text-sm text-muted hover:text-ink"
-              >
+              <button type="button" onClick={() => onResult(null)} className={BUTTON.secondary}>
                 Send inn en annen
               </button>
             </div>

@@ -1,3 +1,4 @@
+import { BUTTON } from "./buttons";
 /** Opens the before-and-after view, which belongs to no step of its own (D40). */
 export function CompareButton() {
   return (
@@ -6,7 +7,7 @@ export function CompareButton() {
       onClick={() => {
         window.location.hash = "#/foer-etter";
       }}
-      className="rounded-md border border-line bg-raised px-3 py-1.5 text-sm text-ink hover:bg-raised-hover"
+      className={BUTTON.secondary}
     >
       Se før og etter
     </button>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { type DismissState, dismiss, getDismissed } from "../api/dismiss";
+import { BUTTON } from "../components/buttons";
 import { replayName } from "../events/replay";
 import { PAGE } from "./layout";
 import type { ScreenMeta } from "./registry";
@@ -113,7 +114,7 @@ export default function Proevetid() {
                 type="button"
                 disabled={busy}
                 onClick={() => void set(false)}
-                className="rounded-md border border-line px-4 py-2 text-sm font-medium text-ink hover:bg-raised-hover disabled:opacity-40"
+                className={BUTTON.secondary}
               >
                 Ansett igjen
               </button>
@@ -127,7 +128,7 @@ export default function Proevetid() {
                     type="button"
                     disabled={busy}
                     onClick={() => void set(true)}
-                    className="rounded-md bg-brudd px-6 py-3 text-base font-semibold text-surface disabled:opacity-40"
+                    className={BUTTON.danger}
                   >
                     Ja, si opp nå
                   </button>
@@ -139,7 +140,7 @@ export default function Proevetid() {
                       setStep("idle");
                       focusNext.current = "action";
                     }}
-                    className="rounded-md border border-line px-4 py-3 text-sm text-muted hover:text-ink disabled:opacity-40"
+                    className={BUTTON.secondary}
                   >
                     Avbryt
                   </button>
@@ -153,7 +154,7 @@ export default function Proevetid() {
                   setStep("confirming");
                   focusNext.current = "cancel";
                 }}
-                className="rounded-md bg-brudd px-8 py-4 text-lg font-semibold text-surface"
+                className={BUTTON.danger}
               >
                 Si opp
               </button>

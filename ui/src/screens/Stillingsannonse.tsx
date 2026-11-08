@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { buildPlan, getPlan, isLock, putPlan, type TestPlan } from "../api/plans";
 import { startRun } from "../api/runs";
+import { BUTTON } from "../components/buttons";
 import { replayName } from "../events/replay";
 import { DEMO_PLAN_ID, getSession, updateSession } from "../state/session";
 import { PAGE, PROSE } from "./layout";
@@ -112,7 +113,7 @@ function PlanView({ initial }: { initial: TestPlan }) {
             type="button"
             onClick={() => void makeRules()}
             disabled={building || busy || !ad.trim()}
-            className="rounded-md border border-line px-4 py-2 font-semibold text-ink hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className={BUTTON.secondary}
           >
             {building ? "Lager regler …" : "Lag regler"}
           </button>
@@ -187,7 +188,7 @@ function PlanView({ initial }: { initial: TestPlan }) {
           type="button"
           onClick={() => void approve()}
           disabled={locked || emptyRule}
-          className="rounded-md border border-line px-4 py-2 font-semibold text-ink hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className={BUTTON.secondary}
         >
           Godkjenn planen
         </button>
@@ -195,7 +196,7 @@ function PlanView({ initial }: { initial: TestPlan }) {
           type="button"
           onClick={() => void start()}
           disabled={locked || emptyRule || unsaved}
-          className="rounded-md bg-pagar px-4 py-2 font-semibold text-surface hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className={BUTTON.primary}
         >
           Start intervju
         </button>
