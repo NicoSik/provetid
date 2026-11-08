@@ -141,7 +141,7 @@ For F2, the speaker says:
 If a judge asks whether it works on real scams, the driver opens the live tab (Cmd+3), presses
 «Send inn svindel» and pastes the judge's scam text (D43). The speaker says:
 
-> Teksten blir renset først. Vi lagrer den aldri, og vi åpner ingen lenker.
+> Teksten blir renset først. Vi lagrer aldri originalteksten, og vi åpner ingen lenker.
 
 Prepared answers, one or two sentences each. The buyer is the shop (A12). The price (Q5) is still
 Nico's decision: the answers marked *(forslag)* are a proposal until he confirms them.

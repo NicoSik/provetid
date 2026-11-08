@@ -30,7 +30,7 @@ Claims you may make (the product shows them):
 - 20 parallel test chats against the shop's bot.
 - Each failure comes with a word-for-word quote from the chat.
 - Limits are enforced in code, outside the AI.
-- A scam text can be submitted; it is cleaned first and never stored.
+- A scam text can be submitted; it is cleaned first, and the original text is never stored.
 
 Claims you must not make:
 - No customer numbers, revenue, prices, partners or user quotes. We have none.
